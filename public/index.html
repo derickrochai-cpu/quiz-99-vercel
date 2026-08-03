@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 99 - Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .road {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(to bottom, #1a1a1a 0%, #000000 100%);
+            border-top: 4px solid #F5C500;
+        }
+
+        .road-lines {
+            position: absolute;
+            bottom: 100px;
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 50px,
+                #F5C500 50px,
+                #F5C500 100px
+            );
+            animation: moveRoad 2s linear infinite;
+        }
+
+        @keyframes moveRoad {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100px); }
+        }
+
+        /* Moving Cars */
+        .car {
+            position: absolute;
+            bottom: 120px;
+            font-size: 3rem;
+            animation: drive 8s linear infinite;
+        }
+
+        .car:nth-child(1) { left: -100px; animation-delay: 0s; }
+        .car:nth-child(2) { left: -100px; animation-delay: 2s; }
+        .car:nth-child(3) { left: -100px; animation-delay: 4s; }
+
+        @keyframes drive {
+            0% { transform: translateX(0) scaleX(1); }
+            45% { transform: translateX(calc(100vw + 100px)) scaleX(1); }
+            50% { transform: translateX(calc(100vw + 100px)) scaleX(-1); }
+            95% { transform: translateX(0) scaleX(-1); }
+            100% { transform: translateX(0) scaleX(1); }
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #F5C500;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 4px 4px 0px #000000, 6px 6px 0px #F5C500;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .logo span {
+            color: #FFFFFF;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: #F5C500;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px 40px;
+            background: #F5C500;
+            color: #000000;
+            font-size: 1.3rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 0 #000000, 0 15px 20px rgba(0,0,0,0.3);
+            margin: 10px;
+            min-width: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 0 #000000, 0 20px 30px rgba(245,197,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #000000;
+        }
+
+        .btn-secondary {
+            background: #FFFFFF;
+            box-shadow: 0 8px 0 #333333, 0 15px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 12px 0 #333333, 0 20px 30px rgba(255,255,255,0.2);
+        }
+
+        /* Forms */
+        .form-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            border: 4px solid #F5C500;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .form-title {
+            font-size: 2rem;
+            color: #000000;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #000000;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #000000;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: 'Montserrat', sans-serif;
+            background: #f5f5f5;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #F5C500;
+            background: #FFFFFF;
+        }
+
+        /* Question Screen */
+        .question-container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .timer-bar {
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            border: 3px solid #F5C500;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #F5C500, #FFD700);
+            transition: width 0.1s linear;
+        }
+
+        .timer-text {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #F5C500;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #000000;
+        }
+
+        .question-number {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #F5C500;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 700;
+            line-height: 1.3;
+            background: #FFFFFF;
+            color: #000000;
+            padding: 30px;
+            border-radius: 20px;
+            border: 4px solid #F5C500;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .option {
+            padding: 25px;
+            background: #FFFFFF;
+            color: #000000;
+            border: 4px solid #000000;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option-letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background: #F5C500;
+            color: #000000;
+            font-size: 1.5rem;
+            font-weight: 900;
+            border-radius: 10px;
+            border: 3px solid #000000;
+        }
+
+        .option:hover {
+            transform: scale(1.03);
+            background: #F5C500;
+            box-shadow: 0 10px 20px rgba(245,197,0,0.3);
+        }
+
+        .option.selected {
+            background: #F5C500;
+            transform: scale(0.98);
+        }
+
+        .option.correct {
+            background: #28a745;
+            color: #FFFFFF;
+        }
+
+        .option.wrong {
+            background: #dc3545;
+            color: #FFFFFF;
+        }
+
+        /* Ranking */
+        .ranking-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .ranking-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #F5C500;
+            font-weight: 900;
+            text-shadow: 3px 3px 0 #000000;
+        }
+
+        .ranking-list {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 20px;
+            border: 4px solid #F5C500;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border: 3px solid #000000;
+            transition: all 0.3s;
+        }
+
+        .ranking-item.top-1 {
+            background: linear-gradient(135deg, #FFD700, #F5C500);
+            transform: scale(1.05);
+        }
+
+        .ranking-item.top-2 {
+            background: linear-gradient(135deg, #C0C0C0, #E0E0E0);
+        }
+
+        .ranking-item.top-3 {
+            background: linear-gradient(135deg, #CD7F32, #D4A373);
+        }
+
+        .rank-position {
+            font-size: 2rem;
+            font-weight: 900;
+            width: 60px;
+            text-align: center;
+        }
+
+        .rank-name {
+            flex: 1;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .rank-score {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #000000;
+        }
+
+        /* Podium Animation */
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 20px;
+            margin: 50px 0;
+            height: 400px;
+        }
+
+        .podium-place {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: bounceIn 1s ease;
+        }
+
+        .podium-place:nth-child(1) { animation-delay: 0.2s; }
+        .podium-place:nth-child(2) { animation-delay: 0s; }
+        .podium-place:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0) translateY(100px); opacity: 0; }
+            60% { transform: scale(1.1) translateY(-20px); }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .podium-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #F5C500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 5px solid #000000;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .podium-avatar.first {
+            width: 130px;
+            height: 130px;
+            font-size: 4rem;
+            background: linear-gradient(135deg, #FFD700, #F5C500);
+        }
+
+        .podium-block {
+            width: 150px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px;
+            border: 5px solid #000000;
+            border-bottom: none;
+        }
+
+        .podium-block.first {
+            height: 250px;
+            background: linear-gradient(180deg, #FFD700, #F5C500);
+        }
+
+        .podium-block.second {
+            height: 200px;
+            background: linear-gradient(180deg, #C0C0C0, #E0E0E0);
+        }
+
+        .podium-block.third {
+            height: 150px;
+            background: linear-gradient(180deg, #CD7F32, #D4A373);
+        }
+
+        .podium-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #000000;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .podium-score {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #000000;
+        }
+
+        /* Coupon Section */
+        .coupon-container {
+            text-align: center;
+            padding: 40px;
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 5px solid #F5C500;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .coupon-title {
+            font-size: 2rem;
+            color: #000000;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .coupon-code {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #F5C500;
+            background: #000000;
+            padding: 20px 40px;
+            border-radius: 15px;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            border: 4px solid #F5C500;
+        }
+
+        .coupon-discount {
+            font-size: 1.5rem;
+            color: #28a745;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #FFFFFF;
+            border-radius: 15px;
+            border: 4px solid #F5C500;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            color: #000000;
+            font-weight: 800;
+        }
+
+        .question-builder {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 4px solid #000000;
+        }
+
+        .question-item {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 3px solid #000000;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #F5C500;
+        }
+
+        /* Waiting Screen */
+        .waiting-screen {
+            text-align: center;
+        }
+
+        .waiting-animation {
+            font-size: 5rem;
+            margin: 30px 0;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .waiting-text {
+            font-size: 1.5rem;
+            color: #F5C500;
+            margin-bottom: 20px;
+        }
+
+        .players-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #F5C500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #000000;
+            border: 3px solid #000000;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #FFFFFF;
+            border-top: 5px solid #F5C500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #F5C500;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .btn {
+                min-width: 250px;
+                padding: 15px 30px;
+                font-size: 1.1rem;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .podium-container {
+                transform: scale(0.7);
+            }
+
+            .question-text {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="road"></div>
+        <div class="road-lines"></div>
+        <div class="car">🚕</div>
+        <div class="car">🚗</div>
+        <div class="car">🚙</div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen active">
+        <div class="logo">QUIZ<span>99</span></div>
+        <div class="tagline">🏁 Race Your Knowledge!</div>
+        <button class="btn" onclick="showScreen('player-login')">
+            🎮 Join Game
+        </button>
+        <button class="btn btn-secondary" onclick="showScreen('admin-login')">
+            👤 Admin Area
+        </button>
+    </div>
+
+    <!-- Player Login -->
+    <div id="player-login" class="screen">
+        <div class="form-container">
+            <div class="form-title">🏁 Join the Race</div>
+            <div class="input-group">
+                <label>Your Name</label>
+                <input type="text" id="player-name" placeholder="Enter your name">
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="player-email" placeholder="your@email.com">
+            </div>
+            <div class="input-group">
+                <label>Game Code</label>
+                <input type="text" id="game-code" placeholder="ABC123" maxlength="6">
+            </div>
+            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">
+                🚀 Start Racing
+            </button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">
+                ← Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="admin-login" class="screen">
+        <div class="form-container">
+            <div class="form-title">👑 Admin Login</div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="admin-email" placeholder="admin@99app.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="admin-password" placeholder="••••••">
+            </div>
+            <button class="btn" onclick="adminLogin()" style="width:100%; margin-top:20px;">
+                🔑 Login
+            </button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">
+                ← Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Waiting Screen -->
+    <div id="waiting-screen" class="screen">
+        <div class="waiting-screen">
+            <div class="waiting-animation">🚕💨</div>
+            <div class="waiting-text">Waiting for the race to start...</div>
+            <div class="waiting-text" id="waiting-players">Players: 0</div>
+            <div class="players-list" id="players-avatars"></div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="question-container">
+            <div class="timer-bar">
+                <div class="timer-progress" id="timer-bar"></div>
+            </div>
+            <div class="timer-text" id="timer-text">30</div>
+            <div class="question-number">Question <span id="current-q">1</span> / <span id="total-q">10</span></div>
+            <div class="question-text" id="question-text">Loading question...</div>
+            <div class="options-grid" id="options-grid">
+                <!-- Options will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Ranking Screen -->
+    <div id="ranking-screen" class="screen">
+        <div class="ranking-container">
+            <div class="ranking-title">🏆 Race Standings</div>
+            <div class="ranking-list" id="ranking-list">
+                <!-- Ranking items will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Podium -->
+    <div id="podium-screen" class="screen">
+        <div class="ranking-title">🏁 Final Results!</div>
+        <div class="podium-container" id="podium-container">
+            <!-- Podium will be inserted here -->
+        </div>
+        <div class="coupon-container" id="coupon-section" style="display:none;">
+            <div class="coupon-title">🎉 You Won a Coupon!</div>
+            <div class="coupon-discount" id="coupon-discount">R$ 20,00 OFF</div>
+            <div class="coupon-code" id="coupon-code">Q99ABC123</div>
+            <p style="color:#000; margin-top:15px;">Valid for 30 days • Use in the 99 app</p>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="screen">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <div class="admin-title">👑 Admin Dashboard</div>
+                <button class="btn" onclick="logoutAdmin()">Logout</button>
+            </div>
+
+            <div class="question-builder">
+                <h2 style="color:#000; margin-bottom:20px;">📝 Create Quiz</h2>
+                <div class="input-group">
+                    <label>Quiz Title</label>
+                    <input type="text" id="quiz-title" placeholder="Enter quiz title">
+                </div>
+                <div id="questions-container">
+                    <!-- Questions will be added here -->
+                </div>
+                <button class="btn btn-secondary" onclick="addQuestion()">+ Add Question</button>
+                <button class="btn" onclick="createGame()" style="margin-left:10px;">🚀 Create Game</button>
+            </div>
+
+            <div class="form-container" id="game-info" style="display:none;">
+                <div class="form-title">🎮 Game Created!</div>
+                <div class="input-group">
+                    <label>Game Code</label>
+                    <input type="text" id="created-game-code" readonly style="font-size:1.5rem; text-align:center;">
+                </div>
+                <button class="btn" onclick="startGame()">🏁 Start Race</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

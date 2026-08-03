@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/socket.io/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ],
+  "env": {
+    "JWT_SECRET": "quiz99_secret_key_2024",
+    "ADMIN_EMAIL": "admin@99app.com",
+    "ADMIN_PASSWORD": "admin123",
+    "GOOGLE_SCRIPT_URL": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"
+  }
+}
