@@ -192,13 +192,21 @@ io.on('connection', (socket) => {
 
   // Iniciar jogo
   socket.on('start-game', ({ gameCode }) => {
-    const game = db.games.get(gameCode);
-    if (!game) return;
+    console.log('🎮 Start game requested:', gameCode);
+    console.log('   Socket ID:', socket.id);
 
+    const game = db.games.get(gameCode);
+    if (!game) {
+      console.log('   ❌ Game not found');
+      return socket.emit('error', { message: 'Game not found' });
+    }
+
+    console.log('   ✅ Game found, starting...');
     game.status = 'playing';
     game.currentQuestion = 0;
 
     io.to(gameCode).emit('game-started');
+    console.log('   ✅ Game-started event emitted to room:', gameCode);
 
     // Enviar primeira pergunta
     sendQuestion(gameCode);

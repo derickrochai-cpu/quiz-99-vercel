@@ -196,7 +196,23 @@ function createGame() {
 
 function startGame() {
     const gameCode = document.getElementById('created-game-code').value;
-    socket.emit('start-game', { gameCode });
+    console.log('🎮 Start Race clicked! Game code:', gameCode);
+    console.log('🔌 Socket connected:', socket.connected);
+    console.log('🔌 Socket ID:', socket.id);
+
+    if (!gameCode) {
+        alert('Error: No game code found!');
+        return;
+    }
+
+    if (!socket.connected) {
+        alert('Error: Not connected to server!');
+        return;
+    }
+
+    socket.emit('start-game', { gameCode }, (response) => {
+        console.log('📨 Server response:', response);
+    });
 }
 
 // ============================================
@@ -211,7 +227,20 @@ socket.on('joined', (data) => {
 
 // Erro
 socket.on('error', (data) => {
+    console.log('❌ Socket error:', data);
     alert(data.message);
+});
+
+socket.on('connect', () => {
+    console.log('✅ Socket connected! ID:', socket.id);
+});
+
+socket.on('disconnect', (reason) => {
+    console.log('❌ Socket disconnected:', reason);
+});
+
+socket.on('connect_error', (error) => {
+    console.log('❌ Socket connection error:', error.message);
 });
 
 // Jogadores atualizados
