@@ -1,12 +1,12 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+module.exports = async function handler(req, res) {
+  const bcrypt = require('bcryptjs');
+  const jwt = require('jsonwebtoken');
 
-// Configurações das variáveis de ambiente
-const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+  // Configurações das variáveis de ambiente
+  const JWT_SECRET = process.env.JWT_SECRET;
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -47,14 +47,12 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  // Verificar senha (comparar diretamente ou com hash)
+  // Verificar senha
   let validPassword = false;
 
-  // Tentar comparar como texto plano primeiro (para teste)
   if (password === ADMIN_PASSWORD) {
     validPassword = true;
   } else {
-    // Tentar com bcrypt
     try {
       validPassword = await bcrypt.compare(password, ADMIN_PASSWORD);
     } catch (e) {
@@ -74,4 +72,4 @@ export default async function handler(req, res) {
 
   console.log('✅ Login successful');
   res.status(200).json({ token, email });
-}
+};

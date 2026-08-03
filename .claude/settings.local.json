@@ -13,7 +13,8 @@
       "Bash(chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg)",
       "Bash(node *)",
       "Bash(git push *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git rm *)"
     ]
   }
 }
