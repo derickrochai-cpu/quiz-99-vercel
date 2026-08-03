@@ -6,7 +6,14 @@
       "Bash(npm --version)",
       "Bash(npm install *)",
       "Bash(gh auth *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(curl *)",
+      "Bash(git remote *)",
+      "Bash(dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg)",
+      "Bash(chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg)",
+      "Bash(node *)",
+      "Bash(git push *)",
+      "Bash(git commit *)"
     ]
   }
 }
