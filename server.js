@@ -18,17 +18,10 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configurações
-const JWT_SECRET = process.env.JWT_SECRET || 'quiz99_secret_key';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@99app.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
-
-// Debug logs (remover em produção após confirmar que funciona)
-console.log('🔧 Configurações carregadas:');
-console.log('  JWT_SECRET:', JWT_SECRET ? '✅ Definido' : '❌ Não definido');
-console.log('  ADMIN_EMAIL:', ADMIN_EMAIL);
-console.log('  ADMIN_PASSWORD:', ADMIN_PASSWORD ? '✅ Definido' : '❌ Não definido');
+// Configurações - HARDCODED para funcionar na Vercel
+const JWT_SECRET = 'quiz99_secret_key_2024';
+const ADMIN_EMAIL = 'admin@99app.com';
+const ADMIN_PASSWORD = 'admin123';
 
 // Banco de dados em memória
 const db = {
@@ -42,29 +35,15 @@ const db = {
 // ============================================
 
 // Login Admin
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
 
-  console.log('🔐 Tentativa de login:');
-  console.log('  Email recebido:', email);
-  console.log('  ADMIN_EMAIL esperado:', ADMIN_EMAIL);
-  console.log('  Email match:', email === ADMIN_EMAIL);
-
-  if (email !== ADMIN_EMAIL) {
-    console.log('❌ Email não corresponde');
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-
-  const validPassword = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
-  console.log('  Senha válida:', validPassword);
-
-  if (!validPassword) {
-    console.log('❌ Senha incorreta');
+  // Validação simples sem bcrypt
+  if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
   const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: '24h' });
-  console.log('✅ Login bem-sucedido');
   res.json({ token, email });
 });
 
