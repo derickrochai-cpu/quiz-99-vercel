@@ -361,6 +361,13 @@ function showAdminRanking(ranking) {
 
 function loadAdminDashboard() {
     adminToken = localStorage.getItem('adminToken');
+    console.log('Admin dashboard loaded');
+}
+
+function logoutAdmin() {
+    adminToken = null;
+    localStorage.removeItem('adminToken');
+    showScreen('admin-login');
 }
 
 // Inicializar

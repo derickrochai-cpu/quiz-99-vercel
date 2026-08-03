@@ -813,11 +813,18 @@
                     <label>Quiz Title</label>
                     <input type="text" id="quiz-title" placeholder="Enter quiz title">
                 </div>
-                <div id="questions-container">
-                    <!-- Questions will be added here -->
+                <div class="input-group">
+                    <label>Questions (Formato: pergunta + 4 opções + resposta correta 0-3 + tempo)</label>
+                    <textarea id="quiz-questions" rows="10" placeholder="Exemplo:
+Quanto é 2+2?
+1
+2
+3
+4
+3
+30"></textarea>
                 </div>
-                <button class="btn btn-secondary" onclick="addQuestion()">+ Add Question</button>
-                <button class="btn" onclick="createGame()" style="margin-left:10px;">🚀 Create Game</button>
+                <button class="btn" onclick="createGame()">🚀 Create Game</button>
             </div>
 
             <div class="form-container" id="game-info" style="display:none;">
