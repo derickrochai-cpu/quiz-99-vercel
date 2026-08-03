@@ -1,13 +1,11 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/game/poll", "dest": "/api/game/poll.js" },
-    { "src": "/api/game/start", "dest": "/api/game/start.js" },
-    { "src": "/api/game/join", "dest": "/api/game/join.js" },
-    { "src": "/api/game/answer", "dest": "/api/game/answer.js" },
-    { "src": "/api/admin/login", "dest": "/api/admin/login.js" },
-    { "src": "/api/game/create", "dest": "/api/game/create.js" },
-    { "src": "/socket.io/(.*)", "dest": "/public/404.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+    { "src": "/api/(.*)", "dest": "/api/$1.js" }
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 10
+    }
+  }
 }
