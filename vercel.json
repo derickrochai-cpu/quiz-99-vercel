@@ -16,7 +16,15 @@
       "dest": "server.js"
     },
     {
-      "src": "/api/(.*)",
+      "src": "/api/admin/login",
+      "dest": "/api/admin/login.js"
+    },
+    {
+      "src": "/api/game/create",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/game/([^/]+)/status",
       "dest": "server.js"
     },
     {
