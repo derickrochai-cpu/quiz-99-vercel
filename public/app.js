@@ -46,6 +46,7 @@ async function pollGame(gameCode, role) {
         const response = await fetch(`/api/game/poll?gameCode=${gameCode}&t=${Date.now()}`);
         if (!response.ok) return;
         const data = await response.json();
+        console.log('[pollGame] Response:', { status: data.status, role });
         handleGameUpdate(data, role);
     } catch (err) {
         console.log('Poll error:', err.message);
@@ -103,9 +104,13 @@ function handleGameUpdate(data, role) {
     }
 
     // Admin - Game playing
+    console.log('[handleGameUpdate] Admin check:', { role, status: data.status });
     if (role === 'admin' && data.status === 'playing') {
+        console.log('[handleGameUpdate] Game is playing, switching to control screen');
         const isOnControl = document.getElementById('admin-game-control')?.classList.contains('active');
+        console.log('[handleGameUpdate] Is on control screen:', isOnControl);
         if (!isOnControl) {
+            console.log('[handleGameUpdate] Showing admin-game-control');
             showScreen('admin-game-control');
         }
         updateAdminGameView(data);
@@ -541,39 +546,50 @@ function updateAdminWaitingPlayers(players) {
 }
 
 async function startGame() {
+    console.log('[startGame] ===========================');
     console.log('[startGame] Button clicked');
-    console.log('[startGame] currentGame:', currentGame);
-    console.log('[startGame] adminToken:', adminToken ? 'Present' : 'Missing');
+    console.log('[startGame] currentGame:', JSON.stringify(currentGame));
+    console.log('[startGame] adminToken present:', !!adminToken);
 
     if (!currentGame?.code) {
+        console.error('[startGame] ERROR: No currentGame.code!');
         alert('Nenhum jogo!');
         return;
     }
 
+    const gameCode = currentGame.code;
+    console.log('[startGame] Game code:', gameCode);
+
     try {
-        console.log('[startGame] Sending request...');
+        console.log('[startGame] Sending POST to /api/game/start');
+        const requestBody = { gameCode: gameCode };
+        console.log('[startGame] Request body:', JSON.stringify(requestBody));
+
         const response = await fetch('/api/game/start', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${adminToken}`
             },
-            body: JSON.stringify({ gameCode: currentGame.code })
+            body: JSON.stringify(requestBody)
         });
 
+        console.log('[startGame] Response received');
         console.log('[startGame] Response status:', response.status);
+
         const data = await response.json();
-        console.log('[startGame] Response data:', data);
+        console.log('[startGame] Response data:', JSON.stringify(data));
 
         if (!response.ok) {
+            console.error('[startGame] ERROR: Response not OK');
             alert(data.error || 'Erro ao iniciar');
             return;
         }
 
-        console.log('[startGame] Game started successfully');
+        console.log('[startGame] SUCCESS: Game started!');
 
     } catch (err) {
-        console.error('[startGame] Error:', err);
+        console.error('[startGame] EXCEPTION:', err);
         alert('Erro: ' + err.message);
     }
 }

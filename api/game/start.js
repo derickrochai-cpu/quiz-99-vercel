@@ -64,8 +64,14 @@ module.exports = async (req, res) => {
     timeLeft: game.questions[0].time
   };
 
-  await updateGame(gameCode, updates);
-  console.log('[start] Game started successfully:', gameCode);
+  try {
+    await updateGame(gameCode, updates);
+    console.log('[start] Game updated successfully');
+  } catch (updateErr) {
+    console.error('[start] Error updating game:', updateErr);
+    return res.status(500).json({ error: 'Failed to update game' });
+  }
 
+  console.log('[start] Game started successfully:', gameCode);
   res.json({ success: true, status: 'playing' });
 };
