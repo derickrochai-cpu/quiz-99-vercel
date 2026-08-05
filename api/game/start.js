@@ -17,8 +17,12 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  console.log('[start] Request received:', req.body);
+
   // Verificar token
   const authHeader = req.headers.authorization;
+  console.log('[start] Auth header:', authHeader ? 'Present' : 'Missing');
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -26,16 +30,22 @@ module.exports = async (req, res) => {
   try {
     const token = authHeader.substring(7);
     jwt.verify(token, JWT_SECRET);
+    console.log('[start] Token verified');
   } catch (err) {
+    console.log('[start] Token verification failed:', err.message);
     return res.status(401).json({ error: 'Invalid token' });
   }
 
   const { gameCode } = req.body;
+  console.log('[start] Game code:', gameCode);
+
   if (!gameCode) {
     return res.status(400).json({ error: 'Game code required' });
   }
 
   const game = await getGame(gameCode);
+  console.log('[start] Game found:', game ? 'Yes' : 'No');
+
   if (!game) {
     return res.status(404).json({ error: 'Game not found' });
   }
@@ -53,6 +63,7 @@ module.exports = async (req, res) => {
   };
 
   await updateGame(gameCode, updates);
+  console.log('[start] Game started successfully:', gameCode);
 
   res.json({ success: true, status: 'playing' });
 };

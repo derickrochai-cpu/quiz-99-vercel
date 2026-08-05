@@ -541,9 +541,17 @@ function updateAdminWaitingPlayers(players) {
 }
 
 async function startGame() {
-    if (!currentGame?.code) { alert('Nenhum jogo!'); return; }
+    console.log('[startGame] Button clicked');
+    console.log('[startGame] currentGame:', currentGame);
+    console.log('[startGame] adminToken:', adminToken ? 'Present' : 'Missing');
+
+    if (!currentGame?.code) {
+        alert('Nenhum jogo!');
+        return;
+    }
 
     try {
+        console.log('[startGame] Sending request...');
         const response = await fetch('/api/game/start', {
             method: 'POST',
             headers: {
@@ -553,13 +561,19 @@ async function startGame() {
             body: JSON.stringify({ gameCode: currentGame.code })
         });
 
+        console.log('[startGame] Response status:', response.status);
         const data = await response.json();
+        console.log('[startGame] Response data:', data);
+
         if (!response.ok) {
             alert(data.error || 'Erro ao iniciar');
             return;
         }
 
+        console.log('[startGame] Game started successfully');
+
     } catch (err) {
+        console.error('[startGame] Error:', err);
         alert('Erro: ' + err.message);
     }
 }
