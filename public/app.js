@@ -49,7 +49,7 @@ function startPolling(gameCode, role) {
     }, 1000);
 }
 
-funtion stopPolling() {
+function stopPolling() {
     if (pollInterval) {
         clearInterval(pollInterval);
         pollInterval = null;
@@ -59,7 +59,7 @@ funtion stopPolling() {
 // ============================================
 // MANIPULAÇÃO DO ESTADO DO JOGO
 // ============================================
-funion handleGame(data, role) {
+function handleGame(data, role) {
     // Debug - remover depois
     console.log('[handleGame]', { role, status: data.status, currentQuestion: data.currentQuestion });
 
@@ -113,7 +113,7 @@ funion handleGame(data, role) {
 // ============================================
 // JOGADOR - Entrar no Jogo
 // ============================================
-async funion joinGame() {
+async functionjoinGame() {
     const name = document.getElementById('player-name').value.trim();
     const email = document.getElementById('player-email').value.trim();
     const gameCode = document.getElementById('game-code').value.trim().toUpperCase();
@@ -148,7 +148,7 @@ async funion joinGame() {
     }
 }
 
-funion updateWaitingPlayers(players) {
+functionupdateWaitingPlayers(players) {
     document.getElementById('waiting-players').textContent = `Players: ${players.length}`;
     const container = document.getElementById('players-avatars');
     container.innerHTML = players.map(p =>
@@ -159,7 +159,7 @@ funion updateWaitingPlayers(players) {
 // ============================================
 // JOGADOR - Mostrar Pergunta
 // ============================================
-funion showPlayerQuestion(question, timeLeft) {
+functionshowPlayerQuestion(question, timeLeft) {
     document.getElementById('current-q').textContent = question.questionNumber;
     document.getElementById('total-q').textContent = question.totalQuestions;
     document.getElementById('question-text').textContent = question.text;
@@ -184,7 +184,7 @@ funion showPlayerQuestion(question, timeLeft) {
     currentQuestion.startTime = Date.now();
 }
 
-funion updatePlayerTimer(timeLeft) {
+functionupdatePlayerTimer(timeLeft) {
     if (timeLeft === undefined) return;
     document.getElementById('timer-text').textContent = timeLeft;
     const maxTime = currentQuestion?.time || 30;
@@ -192,14 +192,14 @@ funion updatePlayerTimer(timeLeft) {
     document.getElementById('timer-bar').style.width = percentage + '%';
 }
 
-funion updateTimerDisplay(timeLeft) {
+functionupdateTimerDisplay(timeLeft) {
     // Placeholder para updates gerais de timer
 }
 
 // ============================================
 // JOGADOR - Enviar Resposta
 // ============================================
-async funion submitAnswer(answerIndex) {
+async functionsubmitAnswer(answerIndex) {
     if (!currentGame || !currentQuestion) return;
 
     // Desabilitar todos os botões
@@ -245,7 +245,7 @@ async funion submitAnswer(answerIndex) {
 // ============================================
 // JOGADOR - Mostrar Resultados
 // ============================================
-funion showPlayerResults(ranking) {
+functionshowPlayerResults(ranking) {
     showScreen('podium-screen');
 
     const podium = document.getElementById('podium-container');
@@ -277,7 +277,7 @@ funion showPlayerResults(ranking) {
 // ============================================
 // ADMIN - Login
 // ============================================
-async funion adminLogin() {
+async functionadminLogin() {
     const email = document.getElementById('admin-email').value.trim();
     const password = document.getElementById('admin-password').value;
 
@@ -314,7 +314,7 @@ async funion adminLogin() {
     }
 }
 
-funion logoutAdmin() {
+functionlogoutAdmin() {
     adminToken = null;
     localStorage.removeItem('adminToken');
     currentGame = null;
@@ -327,7 +327,7 @@ funion logoutAdmin() {
 // ============================================
 // ADMIN - Criar Perguntas (Visual)
 // ============================================
-funion addQuestion() {
+functionaddQuestion() {
     const text = document.getElementById('new-question-text').value.trim();
     const option0 = document.getElementById('option-0').value.trim();
     const option1 = document.getElementById('option-1').value.trim();
@@ -368,12 +368,12 @@ funion addQuestion() {
     updateQuestionsList();
 }
 
-funion removeQuestion(index) {
+functionremoveQuestion(index) {
     questionsList.splice(index, 1);
     updateQuestionsList();
 }
 
-funion updateQuestionsList() {
+functionupdateQuestionsList() {
     const container = document.getElementById('questions-list');
     const createBtn = document.getElementById('create-game-btn');
     const errorMsg = document.getElementById('create-game-error');
@@ -424,7 +424,7 @@ funion updateQuestionsList() {
 // ============================================
 // ADMIN - Criar Jogo
 // ============================================
-async funion createGame() {
+async functioncreateGame() {
     const title = document.getElementById('quiz-title').value.trim();
 
     if (!title) {
@@ -467,7 +467,7 @@ async funion createGame() {
     }
 }
 
-funion updateAdminWaitingPlayers(players) {
+functionupdateAdminWaitingPlayers(players) {
     const countEl = document.getElementById('admin-player-count');
     const container = document.getElementById('admin-waiting-players');
     const noMsg = document.getElementById('no-players-msg');
@@ -491,7 +491,7 @@ funion updateAdminWaitingPlayers(players) {
 // ============================================
 // ADMIN - Iniciar Jogo
 // ============================================
-async funion startGame() {
+async functionstartGame() {
     if (!currentGame?.code) {
         alert('⚠️ No game found!');
         return;
@@ -524,7 +524,7 @@ async funion startGame() {
 // ============================================
 // ADMIN - Tela de Controle do Jogo
 // ============================================
-funion updateAdminQuestion(data) {
+functionupdateAdminQuestion(data) {
     const question = data.question;
     if (!question) return;
 
@@ -555,7 +555,7 @@ funion updateAdminQuestion(data) {
     document.getElementById('admin-answered-count').textContent = `${answeredCount}/${data.playerCount}`;
 }
 
-funion adminNextQuestion() {
+functionadminNextQuestion() {
     // Placeholder - o timer automático já avança as perguntas
     // Podemos adicionar funcionalidade de pular manualmente depois
 }
@@ -563,7 +563,7 @@ funion adminNextQuestion() {
 // ============================================
 // ADMIN - Resultados Finais
 // ============================================
-funion showAdminFinalResults(ranking) {
+functionshowAdminFinalResults(ranking) {
     showScreen('admin-final-ranking');
 
     // Pódio
@@ -600,7 +600,7 @@ funion showAdminFinalResults(ranking) {
     `).join('');
 }
 
-funion adminBackToDashboard() {
+functionadminBackToDashboard() {
     currentGame = null;
     questionsList = [];
     updateQuestionsList();
