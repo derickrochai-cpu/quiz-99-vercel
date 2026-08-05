@@ -783,6 +783,36 @@
         }
 
         /* Coupon Section */
+        /* Ranking Animation */
+        .ranking-animated {
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Timer Animation */
+        .timer-pulse {
+            animation: timerPulse 1s ease infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Answer Status */
+        .answer-pending {
+            background: #fff3cd !important;
+            border-color: #ffc107 !important;
+        }
+
         .coupon-container {
             text-align: center;
             padding: 40px;

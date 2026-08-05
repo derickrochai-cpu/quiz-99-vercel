@@ -42,11 +42,14 @@ module.exports = async (req, res) => {
   }
 
   // Iniciar jogo
+  const now = new Date().toISOString();
   const updates = {
     status: 'playing',
     currentQuestion: 0,
     startedAt: Date.now(),
-    answers: {}
+    updatedAt: now,
+    answers: {},
+    timeLeft: game.questions[0].time
   };
 
   await updateGame(gameCode, updates);
