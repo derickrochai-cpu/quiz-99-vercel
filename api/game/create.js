@@ -66,26 +66,28 @@ module.exports = async (req, res) => {
 
   try {
     if (isSupabaseEnabled && supabase) {
-      // Salvar no Supabase
+      // Salvar no Supabase (passar objetos diretamente - Supabase converte para JSONB)
       const { error } = await supabase
         .from('games')
         .insert({
           id: gameId,
           code: gameCode,
           title: title,
-          questions: JSON.stringify(game.questions),
+          questions: game.questions,  // Objeto direto - não string
           status: 'waiting',
           current_question: -1,
-          players: JSON.stringify([]),
-          answers: JSON.stringify({}),
+          players: [],  // Array direto - não string
+          answers: {},  // Objeto direto - não string
           created_at: game.createdAt,
           updated_at: game.updatedAt
         });
 
       if (error) {
-        console.error('Erro ao salvar no Supabase:', error);
+        console.error('[create] Erro ao salvar no Supabase:', error);
         // Fallback para memória se houver erro
         memoryGames.set(gameCode, game);
+      } else {
+        console.log('[create] Jogo salvo no Supabase:', gameCode);
       }
     } else {
       // Usar memória como fallback
@@ -99,7 +101,7 @@ module.exports = async (req, res) => {
       storage: getStorage()
     });
   } catch (err) {
-    console.error('Erro ao criar jogo:', err);
+    console.error('[create] Erro ao criar jogo:', err);
     // Garantir que sempre gravemos algum lugar
     memoryGames.set(gameCode, game);
 
