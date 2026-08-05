@@ -466,19 +466,9 @@ function updateAdminGameView(data) {
 
     document.getElementById('admin-correct-ans').textContent = `${LETTERS[q.correctAnswer]} - ${q.options[q.correctAnswer]}`;
 
-    // Update button text based on current question
-    const btn = document.getElementById('btn-next-q');
-    if (btn) {
-        if (q.questionNumber >= q.totalQuestions) {
-            btn.textContent = 'Finish Quiz →';
-        } else {
-            btn.textContent = 'Next Question →';
-        }
-    }
-
-    // Para contar respostas, precisaríamos de mais dados da API
-    // Por enquanto mostramos jogadores conectados
-    document.getElementById('admin-answered-count').textContent = `${data.playerCount} players`;
+    // O quiz avança automaticamente quando o tempo acaba (timer = 0)
+    // Mostrar status aos jogadores
+    document.getElementById('admin-answered-count').textContent = `${data.playerCount} jogadores conectados`;
 }
 
 async function adminNextQuestion() {

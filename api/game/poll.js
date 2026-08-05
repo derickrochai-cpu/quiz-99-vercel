@@ -1,5 +1,5 @@
 // Rota de polling para verificar estado do jogo - Agora com persistência no Supabase
-const { getGame } = require('../../lib/game-store');
+const { getGame, updateGame } = require('../../lib/game-store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,9 +19,70 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Game code required' });
   }
 
-  const game = await getGame(gameCode);
+  let game = await getGame(gameCode);
   if (!game) {
     return res.status(404).json({ error: 'Game not found' });
+  }
+
+  // AUTO-ADVANCE: Se o tempo acabou, avançar automaticamente
+  if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
+    const currentQ = game.questions[game.currentQuestion];
+    if (currentQ) {
+      const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
+      const now = Date.now();
+      const elapsed = Math.floor((now - questionStartTime) / 1000);
+      const timeLeft = Math.max(0, currentQ.time - elapsed);
+
+      // Se acabou o tempo, avançar automaticamente
+      if (timeLeft <= 0) {
+        const nextQuestion = game.currentQuestion + 1;
+
+        if (nextQuestion >= game.questions.length) {
+          // FIM DO JOGO - Calcular resultados
+          const scores = [];
+          game.players.forEach(player => {
+            let score = 0;
+            let correct = 0;
+
+            Object.entries(game.answers || {}).forEach(([qIndex, questionAnswers]) => {
+              const answer = questionAnswers[player.id];
+              if (answer && answer.isCorrect) {
+                score += answer.points || 100;
+                correct++;
+              }
+            });
+
+            scores.push({
+              id: player.id,
+              name: player.name,
+              score,
+              correctAnswers: correct
+            });
+          });
+
+          scores.sort((a, b) => b.score - a.score);
+
+          await updateGame(gameCode, {
+            status: 'finished',
+            currentQuestion: nextQuestion,
+            timeLeft: 0,
+            results: scores
+          });
+
+          // Recarregar o jogo atualizado
+          game = await getGame(gameCode);
+        } else {
+          // PRÓXIMA PERGUNTA
+          await updateGame(gameCode, {
+            currentQuestion: nextQuestion,
+            timeLeft: game.questions[nextQuestion].time
+          });
+
+          // Recarregar o jogo atualizado
+          game = await getGame(gameCode);
+        }
+      }
+    }
   }
 
   // Retornar estado atual do jogo
@@ -36,28 +97,22 @@ module.exports = async (req, res) => {
   // Se jogo em andamento, incluir pergunta atual
   if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
     const q = game.questions[game.currentQuestion];
-    response.question = {
-      id: q.id,
-      text: q.text,
-      options: q.options,
-      time: q.time,
-      questionNumber: game.currentQuestion + 1,
-      totalQuestions: game.questions.length,
-      correctAnswer: q.correctAnswer
-    };
+    if (q) {
+      const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
+      const now = Date.now();
+      const elapsed = Math.floor((now - questionStartTime) / 1000);
+      const timeLeft = Math.max(0, q.time - elapsed);
 
-    // Calcular tempo restante dinamicamente baseado no tempo da pergunta
-    // Usar updated_at como referência de quando a pergunta começou
-    const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
-    const now = Date.now();
-    const elapsed = Math.floor((now - questionStartTime) / 1000);
-    const timeLeft = Math.max(0, q.time - elapsed);
-    response.timeLeft = timeLeft;
-
-    // Se acabou o tempo, avançar automaticamente
-    if (timeLeft <= 0 && game.currentQuestion < game.questions.length - 1) {
-      // A próxima requisição do admin ou o timer do servidor vai avançar
-      response.timeLeft = 0;
+      response.question = {
+        id: q.id,
+        text: q.text,
+        options: q.options,
+        time: q.time,
+        questionNumber: game.currentQuestion + 1,
+        totalQuestions: game.questions.length,
+        correctAnswer: q.correctAnswer
+      };
+      response.timeLeft = timeLeft;
     }
   }
 
