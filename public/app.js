@@ -60,16 +60,8 @@ function handleGameUpdate(data, role) {
     if (role === 'player' && data.status === 'playing') {
         if (data.question) {
             const isNewQuestion = !currentQuestion || currentQuestion.id !== data.question.id;
-            const questionJustEnded = lastQuestionNumber && lastQuestionNumber !== data.question.questionNumber;
 
-            // Se acabou uma pergunta e começou outra, mostrar ranking intermediário
-            if (questionJustEnded && data.ranking) {
-                showInterimRanking(data.ranking, data.question);
-                lastQuestionNumber = data.question.questionNumber;
-                return;
-            }
-
-            // Nova pergunta detectada
+            // NOVA PERGUNTA: Sempre ir para tela de jogo quando detectar pergunta diferente
             if (isNewQuestion) {
                 currentQuestion = data.question;
                 hasAnsweredCurrent = false;
@@ -78,12 +70,15 @@ function handleGameUpdate(data, role) {
                 renderPlayerQuestion(data.question, data.timeLeft);
             }
 
-            // Atualizar timer (sempre, independente de ter respondido)
-            updatePlayerTimer(data.timeLeft, data.question.time);
+            // Atualizar timer e estado da pergunta atual
+            const isOnGameScreen = document.getElementById('game-screen')?.classList.contains('active');
+            if (isOnGameScreen) {
+                updatePlayerTimer(data.timeLeft, data.question.time);
 
-            // Se o tempo acabou (timeLeft = 0), mostrar resposta correta
-            if (data.timeLeft === 0 && currentQuestion) {
-                showCorrectAnswer();
+                // Se o tempo acabou (timeLeft = 0), mostrar resposta correta
+                if (data.timeLeft === 0) {
+                    showCorrectAnswer();
+                }
             }
         }
     }
@@ -255,43 +250,23 @@ async function submitAnswer(answerIndex) {
 }
 
 // Mostrar ranking intermediário entre perguntas
-function showInterimRanking(ranking, nextQuestion) {
+function showInterimRanking(ranking) {
     const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
     const myScore = ranking.find(p => p.id === currentPlayer?.id)?.score || 0;
-
-    // Criar HTML para ranking parcial
     const top5 = ranking.slice(0, 5);
 
-    // Substituir o conteúdo da tela de game-screen temporariamente
-    const container = document.querySelector('.question-container');
-    if (!container) return;
+    document.getElementById('interim-my-position').innerHTML =
+        `Sua posição: <strong>#${myRank}</strong> | Pontos: <strong>${myScore}</strong>`;
 
-    // Salvar conteúdo original
-    if (!container.dataset.original) {
-        container.dataset.original = container.innerHTML;
-    }
-
-    container.innerHTML = `
-        <div style="text-align:center; padding:40px; background:#fff; border-radius:20px; border:4px solid #F5C500;">
-            <h2 style="color:#000; margin-bottom:20px;">🏆 Ranking Parcial</h2>
-            <div style="font-size:1.5rem; color:#F5C500; margin-bottom:30px;">
-                Sua posição: <strong>#${myRank}</strong> | Pontos: <strong>${myScore}</strong>
-            </div>
-            <div style="margin-bottom:30px;">
-                ${top5.map((p, i) => `
-                    <div style="display:flex; justify-content:space-between; padding:15px; margin:10px 0;
-                                background:${i < 3 ? (i===0?'#FFD700':i===1?'#C0C0C0':'#CD7F32') : '#f5f5f5'};
-                                border-radius:10px; border:2px solid #000;">
-                        <span style="font-weight:800; color:#000;">#${i+1} ${p.name}</span>
-                        <span style="font-weight:800; color:#000;">${p.score} pts</span>
-                    </div>
-                `).join('')}
-            </div>
-            <div style="color:#666; font-size:1.2rem;">
-                Próxima pergunta em breve...
-            </div>
+    document.getElementById('interim-ranking-list').innerHTML = top5.map((p, i) => `
+        <div class="ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}">
+            <div class="rank-position">#${i + 1}</div>
+            <div class="rank-name">${p.name}</div>
+            <div class="rank-score">${p.score} pts</div>
         </div>
-    `;
+    `).join('');
+
+    showScreen('interim-ranking-screen');
 }
 
 function showPlayerFinalRanking(ranking) {
