@@ -4,28 +4,25 @@
  * ============================================
  */
 
-// Estado global
 let currentGame = null;
 let currentPlayer = null;
 let currentQuestion = null;
 let pollInterval = null;
 let adminToken = null;
 let questionsList = [];
+let hasAnsweredCurrent = false;
 
-// Letras para opções
 const LETTERS = ['A', 'B', 'C', 'D'];
 
 // ============================================
-// UTILIDADES
+// NAVIGATION
 // ============================================
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
-    const targetScreen = document.getElementById(screenId);
-    if (targetScreen) {
-        targetScreen.classList.add('active');
-    }
+    const target = document.getElementById(screenId);
+    if (target) target.classList.add('active');
 }
 
 // ============================================
@@ -33,17 +30,7 @@ function showScreen(screenId) {
 // ============================================
 function startPolling(gameCode, role) {
     if (pollInterval) clearInterval(pollInterval);
-
-    pollInterval = setInterval(async () => {
-        try {
-            const response = await fetch(`/api/game/poll?gameCode=${gameCode}`);
-            if (response.status === 304) return;
-            const data = await response.json();
-            handleGameUpdate(data, role);
-        } catch (err) {
-            console.log('Poll error:', err);
-        }
-    }, 1000);
+    pollInterval = setInterval(() => pollGame(gameCode, role), 1000);
 }
 
 function stopPolling() {
@@ -53,36 +40,50 @@ function stopPolling() {
     }
 }
 
+async function pollGame(gameCode, role) {
+    try {
+        const response = await fetch(`/api/game/poll?gameCode=${gameCode}&t=${Date.now()}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        handleGameUpdate(data, role);
+    } catch (err) {
+        console.log('Poll error:', err.message);
+    }
+}
+
 // ============================================
-// GAME STATE HANDLER
+// GAME STATE
 // ============================================
 function handleGameUpdate(data, role) {
-    console.log('[Game Update]', role, data.status);
-
-    // PLAYER: Waiting -> Playing
-    if (role === 'player' && data.status === 'playing' && data.question) {
-        if (!currentQuestion || currentQuestion.id !== data.question.id) {
-            currentQuestion = data.question;
-            showScreen('game-screen');
-            showPlayerQuestion(data.question);
+    // Player - Game started
+    if (role === 'player' && data.status === 'playing') {
+        if (data.question) {
+            // New question detected
+            if (!currentQuestion || currentQuestion.id !== data.question.id) {
+                currentQuestion = data.question;
+                hasAnsweredCurrent = false;
+                showScreen('game-screen');
+                renderPlayerQuestion(data.question);
+            }
+            // Update timer
+            updatePlayerTimer(data.timeLeft, data.question.time);
         }
-        updateTimer(data.timeLeft);
     }
 
-    // PLAYER: Update waiting list
+    // Player - Waiting room
     if (role === 'player' && data.status === 'waiting') {
         updateWaitingPlayers(data.players);
     }
 
-    // ADMIN: Waiting room
+    // Admin - Waiting room
     if (role === 'admin' && data.status === 'waiting') {
         updateAdminWaitingPlayers(data.players);
     }
 
-    // ADMIN: Game started
+    // Admin - Game playing
     if (role === 'admin' && data.status === 'playing') {
-        const isOnGameControl = document.getElementById('admin-game-control')?.classList.contains('active');
-        if (!isOnGameControl) {
+        const isOnControl = document.getElementById('admin-game-control')?.classList.contains('active');
+        if (!isOnControl) {
             showScreen('admin-game-control');
         }
         updateAdminGameView(data);
@@ -100,7 +101,7 @@ function handleGameUpdate(data, role) {
 }
 
 // ============================================
-// PLAYER FUNCTIONS
+// PLAYER
 // ============================================
 async function joinGame() {
     const name = document.getElementById('player-name').value.trim();
@@ -120,9 +121,8 @@ async function joinGame() {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
-            alert(data.error || 'Erro ao entrar no jogo');
+            alert(data.error || 'Erro ao entrar');
             return;
         }
 
@@ -139,8 +139,9 @@ async function joinGame() {
 
 function updateWaitingPlayers(players) {
     const count = players?.length || 0;
-    document.getElementById('waiting-players').textContent = `Jogadores: ${count}`;
+    const countEl = document.getElementById('waiting-players');
     const container = document.getElementById('players-avatars');
+    if (countEl) countEl.textContent = `Jogadores: ${count}`;
     if (container) {
         container.innerHTML = (players || []).map(p =>
             `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
@@ -148,42 +149,43 @@ function updateWaitingPlayers(players) {
     }
 }
 
-function showPlayerQuestion(question) {
+function renderPlayerQuestion(question) {
     document.getElementById('current-q').textContent = question.questionNumber;
     document.getElementById('total-q').textContent = question.totalQuestions;
     document.getElementById('question-text').textContent = question.text;
 
-    const optionsGrid = document.getElementById('options-grid');
-    optionsGrid.innerHTML = '';
+    const grid = document.getElementById('options-grid');
+    grid.innerHTML = '';
 
-    question.options.forEach((option, index) => {
+    question.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option';
-        btn.innerHTML = `
-            <span class="option-letter">${LETTERS[index]}</span>
-            <span>${option}</span>
-        `;
-        btn.onclick = () => submitAnswer(index);
-        optionsGrid.appendChild(btn);
+        btn.innerHTML = `<span class="option-letter">${LETTERS[idx]}</span><span>${opt}</span>`;
+        btn.onclick = function() { submitAnswer(idx); };
+        grid.appendChild(btn);
     });
 
-    currentQuestion.startTime = Date.now();
+    // Reset timer
+    document.getElementById('timer-bar').style.width = '100%';
 }
 
-function updateTimer(timeLeft) {
-    const timerEl = document.getElementById('timer-text');
-    const barEl = document.getElementById('timer-bar');
-    if (timerEl) timerEl.textContent = timeLeft || 30;
-    if (barEl && currentQuestion) {
-        const pct = ((timeLeft || 30) / currentQuestion.time) * 100;
-        barEl.style.width = pct + '%';
-    }
+function updatePlayerTimer(timeLeft, maxTime) {
+    const t = timeLeft || 30;
+    const max = maxTime || 30;
+    const el = document.getElementById('timer-text');
+    const bar = document.getElementById('timer-bar');
+    if (el) el.textContent = t;
+    if (bar) bar.style.width = ((t / max) * 100) + '%';
 }
 
 async function submitAnswer(answerIndex) {
-    if (!currentGame || !currentQuestion) return;
+    if (!currentGame || !currentQuestion || hasAnsweredCurrent) return;
 
-    document.querySelectorAll('.option').forEach(btn => btn.disabled = true);
+    hasAnsweredCurrent = true;
+
+    // Disable all buttons
+    const buttons = document.querySelectorAll('.option');
+    buttons.forEach(btn => btn.disabled = true);
 
     const answerTime = Date.now() - (currentQuestion.startTime || Date.now());
 
@@ -204,12 +206,15 @@ async function submitAnswer(answerIndex) {
 
         const data = await response.json();
 
-        const buttons = document.querySelectorAll('.option');
+        // Show visual feedback
         buttons.forEach((btn, idx) => {
             if (idx === currentQuestion.correctAnswer) {
                 btn.classList.add('correct');
             } else if (idx === answerIndex && !data.isCorrect) {
                 btn.classList.add('wrong');
+            }
+            if (idx === answerIndex) {
+                btn.classList.add('selected');
             }
         });
 
@@ -232,13 +237,12 @@ function showPlayerFinalRanking(ranking) {
         const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
         return `
             <div class="podium-place">
-                <div class="podium-avatar ${cls === 'first' ? 'first' : ''}">${medal}</div>
+                <div class="podium-avatar ${pos === 1 ? 'first' : ''}">${medal}</div>
                 <div class="podium-block ${cls}">
                     <div class="podium-name">${p.name}</div>
                     <div class="podium-score">${p.score} pts</div>
                 </div>
-            </div>
-        `;
+            </div>`;
     }).join('');
 
     document.getElementById('coupon-section').style.display = 'block';
@@ -264,7 +268,6 @@ async function adminLogin() {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
             alert('Credenciais inválidas!');
             return;
@@ -285,7 +288,6 @@ function logoutAdmin() {
     adminToken = null;
     localStorage.removeItem('adminToken');
     currentGame = null;
-    questionsList = [];
     stopPolling();
     showScreen('home-screen');
 }
@@ -301,23 +303,15 @@ function addQuestion() {
         document.getElementById('option-2').value.trim(),
         document.getElementById('option-3').value.trim()
     ];
-
     const correct = parseInt(document.querySelector('input[name="correct-answer"]:checked')?.value || '0');
     const time = parseInt(document.getElementById('question-time').value);
 
-    if (!text) {
-        alert('Digite a pergunta!');
-        return;
-    }
-
-    if (opts.some(o => !o)) {
-        alert('Preencha todas as 4 opções!');
-        return;
-    }
+    if (!text) { alert('Digite a pergunta!'); return; }
+    if (opts.some(o => !o)) { alert('Preencha todas as opções!'); return; }
 
     questionsList.push({ text, options: opts, correctAnswer: correct, time });
 
-    // Clear form
+    // Clear
     document.getElementById('new-question-text').value = '';
     document.getElementById('option-0').value = '';
     document.getElementById('option-1').value = '';
@@ -338,16 +332,17 @@ function renderQuestionsList() {
     const btn = document.getElementById('create-game-btn');
     const error = document.getElementById('create-game-error');
 
-    btn.disabled = questionsList.length === 0;
-    error.style.display = questionsList.length === 0 ? 'block' : 'none';
+    if (btn) btn.disabled = questionsList.length === 0;
+    if (error) error.style.display = questionsList.length === 0 ? 'block' : 'none';
+
+    if (!container) return;
 
     if (questionsList.length === 0) {
         container.innerHTML = `
             <div class="empty-questions">
                 <div class="empty-questions-icon">📝</div>
-                <p>Nenhuma pergunta ainda. Adicione sua primeira pergunta abaixo!</p>
-            </div>
-        `;
+                <p>Nenhuma pergunta ainda. Adicione sua primeira pergunta!</p>
+            </div>`;
         return;
     }
 
@@ -360,7 +355,7 @@ function renderQuestionsList() {
             <p style="color:#000;margin-bottom:10px;font-weight:600;">${q.text}</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
                 ${q.options.map((opt, idx) => `
-                    <div style="padding:10px;background:${idx === q.correctAnswer ? '#d4edda' : '#f5f5f5'};border:2px solid ${idx === q.correctAnswer ? '#28a745' : '#ddd'};border-radius:8px;color:#000;font-size:0.9rem;">
+                    <div style="padding:10px;background:${idx === q.correctAnswer ? '#d4edda' : '#f5f5f5'};border:2px solid ${idx === q.correctAnswer ? '#28a745' : '#ddd'};border-radius:8px;color:#000;">
                         ${LETTERS[idx]}. ${opt} ${idx === q.correctAnswer ? '✅' : ''}
                     </div>
                 `).join('')}
@@ -371,20 +366,12 @@ function renderQuestionsList() {
 }
 
 // ============================================
-// CREATE & START GAME
+// CREATE & MANAGE GAME
 // ============================================
 async function createGame() {
     const title = document.getElementById('quiz-title').value.trim();
-
-    if (!title) {
-        alert('Digite um título para o quiz!');
-        return;
-    }
-
-    if (questionsList.length === 0) {
-        alert('Adicione pelo menos 1 pergunta!');
-        return;
-    }
+    if (!title) { alert('Digite um título!'); return; }
+    if (questionsList.length === 0) { alert('Adicione pelo menos 1 pergunta!'); return; }
 
     try {
         const response = await fetch('/api/game/create', {
@@ -397,7 +384,6 @@ async function createGame() {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
             alert(data.error || 'Erro ao criar jogo');
             return;
@@ -414,13 +400,12 @@ async function createGame() {
 }
 
 function updateAdminWaitingPlayers(players) {
+    const count = players?.length || 0;
     const countEl = document.getElementById('admin-player-count');
     const container = document.getElementById('admin-waiting-players');
     const msg = document.getElementById('no-players-msg');
 
-    const count = players?.length || 0;
     if (countEl) countEl.textContent = count;
-
     if (!container) return;
 
     if (!players || players.length === 0) {
@@ -436,10 +421,7 @@ function updateAdminWaitingPlayers(players) {
 }
 
 async function startGame() {
-    if (!currentGame?.code) {
-        alert('Nenhum jogo encontrado!');
-        return;
-    }
+    if (!currentGame?.code) { alert('Nenhum jogo!'); return; }
 
     try {
         const response = await fetch('/api/game/start', {
@@ -452,9 +434,8 @@ async function startGame() {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
-            alert(data.error || 'Erro ao iniciar jogo');
+            alert(data.error || 'Erro ao iniciar');
             return;
         }
 
@@ -464,7 +445,7 @@ async function startGame() {
 }
 
 // ============================================
-// ADMIN GAME VIEW
+// ADMIN GAME CONTROLS
 // ============================================
 function updateAdminGameView(data) {
     const q = data.question;
@@ -485,14 +466,74 @@ function updateAdminGameView(data) {
 
     document.getElementById('admin-correct-ans').textContent = `${LETTERS[q.correctAnswer]} - ${q.options[q.correctAnswer]}`;
 
-    const answers = data.answers || {};
-    const currentAnswers = answers[data.currentQuestion] || {};
-    const answeredCount = Object.keys(currentAnswers).length;
-    document.getElementById('admin-answered-count').textContent = `${answeredCount}/${data.playerCount}`;
+    // Update button text based on current question
+    const btn = document.getElementById('btn-next-q');
+    if (btn) {
+        if (q.questionNumber >= q.totalQuestions) {
+            btn.textContent = 'Finish Quiz →';
+        } else {
+            btn.textContent = 'Next Question →';
+        }
+    }
+
+    // Para contar respostas, precisaríamos de mais dados da API
+    // Por enquanto mostramos jogadores conectados
+    document.getElementById('admin-answered-count').textContent = `${data.playerCount} players`;
 }
 
-function adminNextQuestion() {
-    // Placeholder para funcionalidade futura
+async function adminNextQuestion() {
+    if (!currentGame?.code) return;
+
+    try {
+        const response = await fetch('/api/game/next', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ gameCode: currentGame.code })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            alert(data.error || 'Erro ao avançar');
+            return;
+        }
+
+        if (data.status === 'finished') {
+            // Game ended, polling will catch this and show results
+        }
+
+    } catch (err) {
+        alert('Erro: ' + err.message);
+    }
+}
+
+async function adminEndGame() {
+    if (!currentGame?.code) return;
+
+    if (!confirm('Tem certeza que deseja encerrar o quiz?')) return;
+
+    try {
+        // Forçar finalização pulando todas as perguntas
+        const response = await fetch('/api/game/next', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ gameCode: currentGame.code })
+        });
+
+        const data = await response.json();
+        if (!response.ok && !data.status === 'finished') {
+            // Se retornou finished, é sucesso
+            alert(data.error || 'Erro ao encerrar');
+        }
+
+    } catch (err) {
+        alert('Erro: ' + err.message);
+    }
 }
 
 function showAdminFinalRanking(ranking) {
@@ -509,23 +550,24 @@ function showAdminFinalRanking(ranking) {
         const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
         return `
             <div class="podium-place">
-                <div class="podium-avatar ${cls === 'first' ? 'first' : ''}">${medal}</div>
+                <div class="podium-avatar ${pos === 1 ? 'first' : ''}">${medal}</div>
                 <div class="podium-block ${cls}">
                     <div class="podium-name">${p.name}</div>
                     <div class="podium-score">${p.score} pts</div>
                 </div>
-            </div>
-        `;
+            </div>`;
     }).join('');
 
     const list = document.getElementById('admin-final-list');
-    list.innerHTML = ranking.map((p, i) => `
-        <div class="ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}">
-            <div class="rank-position">#${i + 1}</div>
-            <div class="rank-name">${p.name}</div>
-            <div class="rank-score">${p.score} pts</div>
-        </div>
-    `).join('');
+    if (list) {
+        list.innerHTML = ranking.map((p, i) => `
+            <div class="ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}">
+                <div class="rank-position">#${i + 1}</div>
+                <div class="rank-name">${p.name}</div>
+                <div class="rank-score">${p.score} pts</div>
+            </div>
+        `).join('');
+    }
 }
 
 function adminBackToDashboard() {

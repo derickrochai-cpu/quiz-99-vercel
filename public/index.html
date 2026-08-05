@@ -924,7 +924,7 @@
             </div>
             <div class="input-group">
                 <label>Game Code</label>
-                <input type="text" id="game-code" placeholder="ABC123" maxlength="6">
+                <input type="text" id="game-code" placeholder="Digite o código do jogo">
             </div>
             <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">🚀 Start Racing</button>
             <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Back</button>
@@ -1147,7 +1147,10 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn" onclick="adminNextQuestion()" id="btn-next-q">Next Question →</button>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn" onclick="adminNextQuestion()" id="btn-next-q">Next Question →</button>
+                    <button class="btn btn-danger" onclick="adminEndGame()">✕ End Quiz</button>
+                </div>
             </div>
 
             <div class="admin-question-box">

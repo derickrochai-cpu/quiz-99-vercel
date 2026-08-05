@@ -42,9 +42,23 @@ module.exports = async (req, res) => {
       options: q.options,
       time: q.time,
       questionNumber: game.currentQuestion + 1,
-      totalQuestions: game.questions.length
+      totalQuestions: game.questions.length,
+      correctAnswer: q.correctAnswer
     };
-    response.timeLeft = game.timeLeft || q.time;
+
+    // Calcular tempo restante dinamicamente baseado no tempo da pergunta
+    // Usar updated_at como referência de quando a pergunta começou
+    const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
+    const now = Date.now();
+    const elapsed = Math.floor((now - questionStartTime) / 1000);
+    const timeLeft = Math.max(0, q.time - elapsed);
+    response.timeLeft = timeLeft;
+
+    // Se acabou o tempo, avançar automaticamente
+    if (timeLeft <= 0 && game.currentQuestion < game.questions.length - 1) {
+      // A próxima requisição do admin ou o timer do servidor vai avançar
+      response.timeLeft = 0;
+    }
   }
 
   // Se jogo terminou, incluir ranking
