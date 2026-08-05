@@ -1,5 +1,6 @@
-// Iniciar jogo via HTTP
-const { games, gameTimers } = require('./state');
+// Iniciar jogo via HTTP - Com persistência no Supabase
+const { getGame, updateGame } = require('../../lib/game-store');
+const { memoryTimers } = require('../../lib/supabase');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'quiz99_secret_key_2024';
@@ -35,16 +36,20 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Game code required' });
   }
 
-  const game = games.get(gameCode);
+  const game = await getGame(gameCode);
   if (!game) {
     return res.status(404).json({ error: 'Game not found' });
   }
 
   // Iniciar jogo
-  game.status = 'playing';
-  game.currentQuestion = 0;
-  game.startedAt = Date.now();
-  game.answers = new Map();
+  const updates = {
+    status: 'playing',
+    currentQuestion: 0,
+    startedAt: Date.now(),
+    answers: {}
+  };
+
+  await updateGame(gameCode, updates);
 
   // Timer para primeira pergunta
   startQuestionTimer(gameCode, game.questions[0].time);
@@ -53,26 +58,24 @@ module.exports = async (req, res) => {
 };
 
 function startQuestionTimer(gameCode, time) {
-  const { games, gameTimers } = require('./state');
-
   // Limpar timer anterior
-  if (gameTimers.has(gameCode)) {
-    clearInterval(gameTimers.get(gameCode));
+  if (memoryTimers.has(gameCode)) {
+    clearInterval(memoryTimers.get(gameCode));
   }
 
   let timeLeft = time;
 
-  const timer = setInterval(() => {
+  const timer = setInterval(async () => {
     timeLeft--;
 
-    const game = games.get(gameCode);
+    const game = await getGame(gameCode);
     if (!game || game.status !== 'playing') {
       clearInterval(timer);
-      gameTimers.delete(gameCode);
+      memoryTimers.delete(gameCode);
       return;
     }
 
-    game.timeLeft = timeLeft;
+    await updateGame(gameCode, { timeLeft });
 
     if (timeLeft <= 0) {
       clearInterval(timer);
@@ -80,29 +83,28 @@ function startQuestionTimer(gameCode, time) {
     }
   }, 1000);
 
-  gameTimers.set(gameCode, timer);
+  memoryTimers.set(gameCode, timer);
 }
 
-function nextQuestionOrEnd(gameCode) {
-  const { games, gameTimers } = require('./state');
-  const game = games.get(gameCode);
+async function nextQuestionOrEnd(gameCode) {
+  const game = await getGame(gameCode);
   if (!game) return;
 
-  game.currentQuestion++;
+  const nextQuestion = game.currentQuestion + 1;
 
-  if (game.currentQuestion >= game.questions.length) {
+  if (nextQuestion >= game.questions.length) {
     // Fim do jogo
-    game.status = 'finished';
+    await updateGame(gameCode, { status: 'finished', currentQuestion: nextQuestion });
     calculateFinalResults(gameCode);
   } else {
     // Próxima pergunta
-    startQuestionTimer(gameCode, game.questions[game.currentQuestion].time);
+    await updateGame(gameCode, { currentQuestion: nextQuestion });
+    startQuestionTimer(gameCode, game.questions[nextQuestion].time);
   }
 }
 
-function calculateFinalResults(gameCode) {
-  const { games, gameResults } = require('./state');
-  const game = games.get(gameCode);
+async function calculateFinalResults(gameCode) {
+  const game = await getGame(gameCode);
   if (!game) return;
 
   const scores = [];
@@ -110,8 +112,8 @@ function calculateFinalResults(gameCode) {
     let score = 0;
     let correct = 0;
 
-    game.answers.forEach((questionAnswers, qIndex) => {
-      const answer = questionAnswers.get(player.id);
+    Object.entries(game.answers).forEach(([qIndex, questionAnswers]) => {
+      const answer = questionAnswers[player.id];
       if (answer && answer.isCorrect) {
         score += answer.points || 100;
         correct++;
@@ -127,5 +129,7 @@ function calculateFinalResults(gameCode) {
   });
 
   scores.sort((a, b) => b.score - a.score);
-  gameResults.set(gameCode, scores);
+
+  // Salvar resultados no jogo
+  await updateGame(gameCode, { results: scores });
 }

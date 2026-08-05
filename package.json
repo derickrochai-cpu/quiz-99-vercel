@@ -1,9 +1,10 @@
 {
   "name": "quiz-99",
   "version": "1.0.0",
-  "description": "Quiz 99 no estilo Kahoot - HTTP Polling para Vercel",
+  "description": "Quiz 99 no estilo Kahoot - HTTP Polling para Vercel com Supabase",
   "dependencies": {
     "uuid": "^9.0.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

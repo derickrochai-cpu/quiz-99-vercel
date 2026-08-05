@@ -1,5 +1,5 @@
-// Enviar resposta via HTTP
-const { games, playerAnswers } = require('./state');
+// Enviar resposta via HTTP - Agora com persistência no Supabase
+const { getGame, updateGame } = require('../../lib/game-store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const game = games.get(gameCode);
+  const game = await getGame(gameCode);
   if (!game || game.status !== 'playing') {
     return res.status(400).json({ error: 'Game not active' });
   }
@@ -36,15 +36,18 @@ module.exports = async (req, res) => {
   const points = isCorrect ? 100 + timeBonus : 0;
 
   // Salvar resposta
-  if (!game.answers.has(game.currentQuestion)) {
-    game.answers.set(game.currentQuestion, new Map());
+  const answers = { ...game.answers };
+  if (!answers[game.currentQuestion]) {
+    answers[game.currentQuestion] = {};
   }
-  game.answers.get(game.currentQuestion).set(playerId, {
+  answers[game.currentQuestion][playerId] = {
     answer,
     isCorrect,
     points,
     time: answerTime
-  });
+  };
+
+  await updateGame(gameCode, { answers });
 
   res.json({
     success: true,

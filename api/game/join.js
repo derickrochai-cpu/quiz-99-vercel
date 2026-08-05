@@ -1,5 +1,5 @@
-// Entrar no jogo via HTTP
-const { games } = require('./state');
+// Entrar no jogo via HTTP - Agora com persistência no Supabase
+const { getGame, updateGame } = require('../../lib/game-store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const game = games.get(gameCode);
+  const game = await getGame(gameCode);
   if (!game) {
     return res.status(404).json({ error: 'Game not found' });
   }
@@ -42,7 +42,9 @@ module.exports = async (req, res) => {
     joinedAt: Date.now()
   };
 
-  game.players.push(player);
+  // Adicionar jogador
+  const updatedPlayers = [...game.players, player];
+  await updateGame(gameCode, { players: updatedPlayers });
 
   res.json({
     success: true,

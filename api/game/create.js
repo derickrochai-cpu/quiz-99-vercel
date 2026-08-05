@@ -1,9 +1,13 @@
-// Criar jogo via HTTP
+// Criar jogo via HTTP - Agora com persistência no Supabase
 const { v4: uuidv4 } = require('uuid');
-const { games } = require('./state');
 const jwt = require('jsonwebtoken');
+const { supabase, memoryGames, isSupabaseEnabled } = require('../../lib/supabase');
 
 const JWT_SECRET = 'quiz99_secret_key_2024';
+
+function getStorage() {
+  return isSupabaseEnabled ? 'supabase' : 'memory';
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -39,9 +43,10 @@ module.exports = async (req, res) => {
 
   // Gerar código do jogo
   const gameCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const gameId = uuidv4();
 
   const game = {
-    id: uuidv4(),
+    id: gameId,
     code: gameCode,
     title,
     questions: questions.map(q => ({
@@ -54,15 +59,55 @@ module.exports = async (req, res) => {
     status: 'waiting',
     currentQuestion: -1,
     players: [],
-    answers: new Map(),
-    createdAt: Date.now()
+    answers: {},
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
-  games.set(gameCode, game);
+  try {
+    if (isSupabaseEnabled && supabase) {
+      // Salvar no Supabase
+      const { error } = await supabase
+        .from('games')
+        .insert({
+          id: gameId,
+          code: gameCode,
+          title: title,
+          questions: JSON.stringify(game.questions),
+          status: 'waiting',
+          current_question: -1,
+          players: JSON.stringify([]),
+          answers: JSON.stringify({}),
+          created_at: game.createdAt,
+          updated_at: game.updatedAt
+        });
 
-  res.json({
-    success: true,
-    gameCode,
-    gameId: game.id
-  });
+      if (error) {
+        console.error('Erro ao salvar no Supabase:', error);
+        // Fallback para memória se houver erro
+        memoryGames.set(gameCode, game);
+      }
+    } else {
+      // Usar memória como fallback
+      memoryGames.set(gameCode, game);
+    }
+
+    res.json({
+      success: true,
+      gameCode,
+      gameId,
+      storage: getStorage()
+    });
+  } catch (err) {
+    console.error('Erro ao criar jogo:', err);
+    // Garantir que sempre gravemos algum lugar
+    memoryGames.set(gameCode, game);
+
+    res.json({
+      success: true,
+      gameCode,
+      gameId,
+      storage: 'memory (fallback)'
+    });
+  }
 };

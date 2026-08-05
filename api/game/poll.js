@@ -1,5 +1,5 @@
-// Rota de polling para verificar estado do jogo
-const { games, playerAnswers, gameResults } = require('./state');
+// Rota de polling para verificar estado do jogo - Agora com persistência no Supabase
+const { getGame } = require('../../lib/game-store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Game code required' });
   }
 
-  const game = games.get(gameCode);
+  const game = await getGame(gameCode);
   if (!game) {
     return res.status(404).json({ error: 'Game not found' });
   }
@@ -48,8 +48,8 @@ module.exports = async (req, res) => {
   }
 
   // Se jogo terminou, incluir ranking
-  if (game.status === 'finished' && gameResults.has(gameCode)) {
-    response.ranking = gameResults.get(gameCode);
+  if (game.status === 'finished' && game.results) {
+    response.ranking = game.results;
   }
 
   res.json(response);
