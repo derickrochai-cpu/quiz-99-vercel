@@ -10,7 +10,7 @@ let currentPlayer = null;
 let currentQuestion = null;
 let pollInterval = null;
 let adminToken = null;
-let questionsList = []; // Lista temporária para criquiz
+let questionsList = [];
 
 // Letras para opções
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -29,7 +29,7 @@ function showScreen(screenId) {
 }
 
 // ============================================
-// POLLING - Atualizações do Jogo
+// POLLING
 // ============================================
 function startPolling(gameCode, role) {
     if (pollInterval) clearInterval(pollInterval);
@@ -37,14 +37,11 @@ function startPolling(gameCode, role) {
     pollInterval = setInterval(async () => {
         try {
             const response = await fetch(`/api/game/poll?gameCode=${gameCode}`);
-            if (!response) return;
-            if (response.status === 304) return; // Not modified
-            if (!response) return;
-
+            if (response.status === 304) return;
             const data = await response.json();
-            handleGame(data, role);
+            handleGameUpdate(data, role);
         } catch (err) {
-            console.log('Poll error (normal if 304):');
+            console.log('Poll error:', err);
         }
     }, 1000);
 }
@@ -57,69 +54,61 @@ function stopPolling() {
 }
 
 // ============================================
-// MANIPULAÇÃO DO ESTADO DO JOGO
+// GAME STATE HANDLER
 // ============================================
-function handleGame(data, role) {
-    // Debug - remover depois
-    console.log('[handleGame]', { role, status: data.status, currentQuestion: data.currentQuestion });
+function handleGameUpdate(data, role) {
+    console.log('[Game Update]', role, data.status);
 
-    // JOGADOR - Tela de espera → Jogo iniciou
-    if (role === 'player' && data.status === 'playing') {
-        if (data.question && currentQuestion?.id !== data.question.id) {
+    // PLAYER: Waiting -> Playing
+    if (role === 'player' && data.status === 'playing' && data.question) {
+        if (!currentQuestion || currentQuestion.id !== data.question.id) {
             currentQuestion = data.question;
             showScreen('game-screen');
-            showPlayerQuestion(data.question, data.timeLeft);
+            showPlayerQuestion(data.question);
         }
-        updatePlayerTimer(data.timeLeft);
+        updateTimer(data.timeLeft);
     }
 
-    // JOGADOR - Atualizar lista de jogadores na tela de espera
-    if (role === 'player' && data.status === 'waiting' && data.players) {
+    // PLAYER: Update waiting list
+    if (role === 'player' && data.status === 'waiting') {
         updateWaitingPlayers(data.players);
     }
 
-    // ADMIN - Sala de espera → Atualizar jogadores
-    if (role === 'admin' && data.status === 'waiting' && document.getElementById('admin-waiting-room')?.classList.contains('active')) {
+    // ADMIN: Waiting room
+    if (role === 'admin' && data.status === 'waiting') {
         updateAdminWaitingPlayers(data.players);
     }
 
-    // ADMIN - Jogo iniciou → Ir para tela de controle
-    if (role === 'admin' && data.status === 'playing' && !document.getElementById('admin-game-control')?.classList.contains('active')) {
-        showScreen('admin-game-control');
-        startPolling(currentGame.code, 'admin');
+    // ADMIN: Game started
+    if (role === 'admin' && data.status === 'playing') {
+        const isOnGameControl = document.getElementById('admin-game-control')?.classList.contains('active');
+        if (!isOnGameControl) {
+            showScreen('admin-game-control');
+        }
+        updateAdminGameView(data);
     }
 
-    // ADMIN - Atualizar pergunta atual
-    if (role === 'admin' && data.status === 'playing' && data.question) {
-        updateAdminQuestion(data);
-    }
-
-    // Ambos - Jogo terminou
+    // Game finished
     if (data.status === 'finished' && data.ranking) {
         stopPolling();
         if (role === 'player') {
-            showPlayerResults(data.ranking);
+            showPlayerFinalRanking(data.ranking);
         } else {
-            showAdminFinalResults(data.ranking);
+            showAdminFinalRanking(data.ranking);
         }
-    }
-
-    // Atualizar timer
-    if (data.timeLeft !== undefined) {
-        updateTimerDisplay(data.timeLeft);
     }
 }
 
 // ============================================
-// JOGADOR - Entrar no Jogo
+// PLAYER FUNCTIONS
 // ============================================
-async functionjoinGame() {
+async function joinGame() {
     const name = document.getElementById('player-name').value.trim();
     const email = document.getElementById('player-email').value.trim();
     const gameCode = document.getElementById('game-code').value.trim().toUpperCase();
 
     if (!name || !email || !gameCode) {
-        alert('⚠️ Please fill in all fields!');
+        alert('Preencha todos os campos!');
         return;
     }
 
@@ -133,7 +122,7 @@ async functionjoinGame() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error || '❌ Error joining game');
+            alert(data.error || 'Erro ao entrar no jogo');
             return;
         }
 
@@ -144,27 +133,25 @@ async functionjoinGame() {
         startPolling(gameCode, 'player');
 
     } catch (err) {
-        alert('❌ Error joining game: ' + err.message);
+        alert('Erro: ' + err.message);
     }
 }
 
-functionupdateWaitingPlayers(players) {
-    document.getElementById('waiting-players').textContent = `Players: ${players.length}`;
+function updateWaitingPlayers(players) {
+    const count = players?.length || 0;
+    document.getElementById('waiting-players').textContent = `Jogadores: ${count}`;
     const container = document.getElementById('players-avatars');
-    container.innerHTML = players.map(p =>
-        `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
-    ).join('');
+    if (container) {
+        container.innerHTML = (players || []).map(p =>
+            `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
+        ).join('');
+    }
 }
 
-// ============================================
-// JOGADOR - Mostrar Pergunta
-// ============================================
-functionshowPlayerQuestion(question, timeLeft) {
+function showPlayerQuestion(question) {
     document.getElementById('current-q').textContent = question.questionNumber;
     document.getElementById('total-q').textContent = question.totalQuestions;
     document.getElementById('question-text').textContent = question.text;
-    document.getElementById('timer-text').textContent = timeLeft || question.time;
-    document.getElementById('timer-bar').style.width = '100%';
 
     const optionsGrid = document.getElementById('options-grid');
     optionsGrid.innerHTML = '';
@@ -180,32 +167,23 @@ functionshowPlayerQuestion(question, timeLeft) {
         optionsGrid.appendChild(btn);
     });
 
-    // Guardar tempo de início
     currentQuestion.startTime = Date.now();
 }
 
-functionupdatePlayerTimer(timeLeft) {
-    if (timeLeft === undefined) return;
-    document.getElementById('timer-text').textContent = timeLeft;
-    const maxTime = currentQuestion?.time || 30;
-    const percentage = (timeLeft / maxTime) * 100;
-    document.getElementById('timer-bar').style.width = percentage + '%';
+function updateTimer(timeLeft) {
+    const timerEl = document.getElementById('timer-text');
+    const barEl = document.getElementById('timer-bar');
+    if (timerEl) timerEl.textContent = timeLeft || 30;
+    if (barEl && currentQuestion) {
+        const pct = ((timeLeft || 30) / currentQuestion.time) * 100;
+        barEl.style.width = pct + '%';
+    }
 }
 
-functionupdateTimerDisplay(timeLeft) {
-    // Placeholder para updates gerais de timer
-}
-
-// ============================================
-// JOGADOR - Enviar Resposta
-// ============================================
-async functionsubmitAnswer(answerIndex) {
+async function submitAnswer(answerIndex) {
     if (!currentGame || !currentQuestion) return;
 
-    // Desabilitar todos os botões
-    document.querySelectorAll('.option').forEach(btn => {
-        btn.disabled = true;
-    });
+    document.querySelectorAll('.option').forEach(btn => btn.disabled = true);
 
     const answerTime = Date.now() - (currentQuestion.startTime || Date.now());
 
@@ -226,10 +204,8 @@ async functionsubmitAnswer(answerIndex) {
 
         const data = await response.json();
 
-        // Mostrar feedback visual
         const buttons = document.querySelectorAll('.option');
         buttons.forEach((btn, idx) => {
-            btn.classList.remove('selected');
             if (idx === currentQuestion.correctAnswer) {
                 btn.classList.add('correct');
             } else if (idx === answerIndex && !data.isCorrect) {
@@ -238,51 +214,45 @@ async functionsubmitAnswer(answerIndex) {
         });
 
     } catch (err) {
-        console.error('Submit answer error:', err);
+        console.error('Erro ao responder:', err);
     }
 }
 
-// ============================================
-// JOGADOR - Mostrar Resultados
-// ============================================
-functionshowPlayerResults(ranking) {
+function showPlayerFinalRanking(ranking) {
     showScreen('podium-screen');
 
     const podium = document.getElementById('podium-container');
     const top3 = ranking.slice(0, 3);
-    const positions = [1, 0, 2]; // 2º, 1º, 3º para visual
+    const order = [1, 0, 2];
 
-    podium.innerHTML = positions.map(pos => {
-        const player = top3[pos];
-        if (!player) return '';
-        const placeClass = pos === 0 ? 'second' : pos === 1 ? 'first' : 'third';
-        const avatarClass = pos === 1 ? 'first' : '';
+    podium.innerHTML = order.map(pos => {
+        const p = top3[pos];
+        if (!p) return '';
+        const cls = pos === 1 ? 'first' : pos === 0 ? 'second' : 'third';
         const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
-
         return `
             <div class="podium-place">
-                <div class="podium-avatar ${avatarClass}">${medal}</div>
-                <div class="podium-block ${placeClass}">
-                    <div class="podium-name">${player.name}</div>
-                    <div class="podium-score">${player.score} pts</div>
+                <div class="podium-avatar ${cls === 'first' ? 'first' : ''}">${medal}</div>
+                <div class="podium-block ${cls}">
+                    <div class="podium-name">${p.name}</div>
+                    <div class="podium-score">${p.score} pts</div>
                 </div>
             </div>
         `;
     }).join('');
 
-    // Mostrar cupom (placeholder)
     document.getElementById('coupon-section').style.display = 'block';
 }
 
 // ============================================
-// ADMIN - Login
+// ADMIN LOGIN
 // ============================================
-async functionadminLogin() {
+async function adminLogin() {
     const email = document.getElementById('admin-email').value.trim();
     const password = document.getElementById('admin-password').value;
 
     if (!email || !password) {
-        alert('⚠️ Please fill in all fields!');
+        alert('Preencha email e senha!');
         return;
     }
 
@@ -296,144 +266,123 @@ async functionadminLogin() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert('❌ Invalid credentials!');
+            alert('Credenciais inválidas!');
             return;
         }
 
         adminToken = data.token;
         localStorage.setItem('adminToken', adminToken);
-
-        // Resetar lista de perguntas
         questionsList = [];
-        updateQuestionsList();
-
+        renderQuestionsList();
         showScreen('admin-dashboard');
 
     } catch (err) {
-        alert('❌ Login error: ' + err.message);
+        alert('Erro no login: ' + err.message);
     }
 }
 
-functionlogoutAdmin() {
+function logoutAdmin() {
     adminToken = null;
     localStorage.removeItem('adminToken');
     currentGame = null;
     questionsList = [];
     stopPolling();
-    updateQuestionsList();
     showScreen('home-screen');
 }
 
 // ============================================
-// ADMIN - Criar Perguntas (Visual)
+// QUESTION BUILDER
 // ============================================
-functionaddQuestion() {
+function addQuestion() {
     const text = document.getElementById('new-question-text').value.trim();
-    const option0 = document.getElementById('option-0').value.trim();
-    const option1 = document.getElementById('option-1').value.trim();
-    const option2 = document.getElementById('option-2').value.trim();
-    const option3 = document.getElementById('option-3').value.trim();
+    const opts = [
+        document.getElementById('option-0').value.trim(),
+        document.getElementById('option-1').value.trim(),
+        document.getElementById('option-2').value.trim(),
+        document.getElementById('option-3').value.trim()
+    ];
 
-    const options = [option0, option1, option2, option3];
-    const correctAnswer = parseInt(document.querySelector('input[name="correct-answer"]:checked')?.value || '0');
+    const correct = parseInt(document.querySelector('input[name="correct-answer"]:checked')?.value || '0');
     const time = parseInt(document.getElementById('question-time').value);
 
     if (!text) {
-        alert('⚠️ Please enter a question!');
+        alert('Digite a pergunta!');
         return;
     }
 
-    if (options.some(o => !o)) {
-        alert('⚠️ Please fill in all 4 options!');
+    if (opts.some(o => !o)) {
+        alert('Preencha todas as 4 opções!');
         return;
     }
 
-    questionsList.push({
-        text,
-        options,
-        correctAnswer,
-        time
-    });
+    questionsList.push({ text, options: opts, correctAnswer: correct, time });
 
-    // Limpar formulário
+    // Clear form
     document.getElementById('new-question-text').value = '';
     document.getElementById('option-0').value = '';
     document.getElementById('option-1').value = '';
     document.getElementById('option-2').value = '';
     document.getElementById('option-3').value = '';
     document.querySelector('input[name="correct-answer"][value="0"]').checked = true;
-    document.getElementById('question-time').value = 30;
-    document.getElementById('time-display').textContent = '30s';
 
-    updateQuestionsList();
+    renderQuestionsList();
 }
 
-functionremoveQuestion(index) {
+function removeQuestion(index) {
     questionsList.splice(index, 1);
-    updateQuestionsList();
+    renderQuestionsList();
 }
 
-functionupdateQuestionsList() {
+function renderQuestionsList() {
     const container = document.getElementById('questions-list');
-    const createBtn = document.getElementById('create-game-btn');
-    const errorMsg = document.getElementById('create-game-error');
+    const btn = document.getElementById('create-game-btn');
+    const error = document.getElementById('create-game-error');
 
-    // Habilitar/desabilitar botão de criar
-    if (questionsList.length === 0) {
-        createBtn.disabled = true;
-        errorMsg.style.display = 'block';
-    } else {
-        createBtn.disabled = false;
-        errorMsg.style.display = 'none';
-    }
+    btn.disabled = questionsList.length === 0;
+    error.style.display = questionsList.length === 0 ? 'block' : 'none';
 
-    // Mostrar perguntas
     if (questionsList.length === 0) {
         container.innerHTML = `
             <div class="empty-questions">
                 <div class="empty-questions-icon">📝</div>
-                <p>No questions yet. Add your first question below!</p>
+                <p>Nenhuma pergunta ainda. Adicione sua primeira pergunta abaixo!</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = questionsList.map((q, index) => `
+    container.innerHTML = questionsList.map((q, i) => `
         <div class="question-item">
             <div class="question-header">
-                <span class="question-number">Question ${index + 1}</span>
-                <div class="question-actions">
-                    <button class="btn btn-danger btn-small" onclick="removeQuestion(${index})">🗑️ Remove</button>
-                </div>
+                <span class="question-number">Pergunta ${i + 1}</span>
+                <button class="btn btn-danger btn-small" onclick="removeQuestion(${i})">🗑️ Remover</button>
             </div>
-            <p style="color:#000; margin-bottom:10px; font-weight:600;">${q.text}</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                ${q.options.map((opt, i) => `
-                    <div style="padding:10px; background:${i === q.correctAnswer ? '#d4edda' : '#f5f5f5'};
-                                border:2px solid ${i === q.correctAnswer ? '#28a745' : '#ddd'};
-                                border-radius:8px; color:#000; font-size:0.9rem;">
-                        ${LETTERS[i]}. ${opt} ${i === q.correctAnswer ? '✅' : ''}
+            <p style="color:#000;margin-bottom:10px;font-weight:600;">${q.text}</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                ${q.options.map((opt, idx) => `
+                    <div style="padding:10px;background:${idx === q.correctAnswer ? '#d4edda' : '#f5f5f5'};border:2px solid ${idx === q.correctAnswer ? '#28a745' : '#ddd'};border-radius:8px;color:#000;font-size:0.9rem;">
+                        ${LETTERS[idx]}. ${opt} ${idx === q.correctAnswer ? '✅' : ''}
                     </div>
                 `).join('')}
             </div>
-            <p style="color:#666; font-size:0.9rem;">⏱️ ${q.time} seconds</p>
+            <p style="color:#666;font-size:0.9rem;">⏱️ ${q.time} segundos</p>
         </div>
     `).join('');
 }
 
 // ============================================
-// ADMIN - Criar Jogo
+// CREATE & START GAME
 // ============================================
-async functioncreateGame() {
+async function createGame() {
     const title = document.getElementById('quiz-title').value.trim();
 
     if (!title) {
-        alert('⚠️ Please enter a quiz title!');
+        alert('Digite um título para o quiz!');
         return;
     }
 
     if (questionsList.length === 0) {
-        alert('⚠️ Add at least 1 question!');
+        alert('Adicione pelo menos 1 pergunta!');
         return;
     }
 
@@ -450,50 +399,45 @@ async functioncreateGame() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error || '❌ Error creating game');
+            alert(data.error || 'Erro ao criar jogo');
             return;
         }
 
         currentGame = { code: data.gameCode, title };
-
-        // Mostrar código na tela de espera
         document.getElementById('admin-game-code').textContent = data.gameCode;
-
         showScreen('admin-waiting-room');
         startPolling(data.gameCode, 'admin');
 
     } catch (err) {
-        alert('❌ Error creating game: ' + err.message);
+        alert('Erro: ' + err.message);
     }
 }
 
-functionupdateAdminWaitingPlayers(players) {
+function updateAdminWaitingPlayers(players) {
     const countEl = document.getElementById('admin-player-count');
     const container = document.getElementById('admin-waiting-players');
-    const noMsg = document.getElementById('no-players-msg');
+    const msg = document.getElementById('no-players-msg');
 
-    if (countEl) countEl.textContent = players?.length || 0;
+    const count = players?.length || 0;
+    if (countEl) countEl.textContent = count;
 
     if (!container) return;
 
     if (!players || players.length === 0) {
         container.innerHTML = '';
-        if (noMsg) noMsg.style.display = 'block';
+        if (msg) msg.style.display = 'block';
         return;
     }
 
-    if (noMsg) noMsg.style.display = 'none';
+    if (msg) msg.style.display = 'none';
     container.innerHTML = players.map(p =>
         `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
     ).join('');
 }
 
-// ============================================
-// ADMIN - Iniciar Jogo
-// ============================================
-async functionstartGame() {
+async function startGame() {
     if (!currentGame?.code) {
-        alert('⚠️ No game found!');
+        alert('Nenhum jogo encontrado!');
         return;
     }
 
@@ -510,86 +454,70 @@ async functionstartGame() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error || '❌ Error starting game');
+            alert(data.error || 'Erro ao iniciar jogo');
             return;
         }
 
-        // Tela de controle será mostrada pelo polling
-
     } catch (err) {
-        alert('❌ Error starting game: ' + err.message);
+        alert('Erro: ' + err.message);
     }
 }
 
 // ============================================
-// ADMIN - Tela de Controle do Jogo
+// ADMIN GAME VIEW
 // ============================================
-functionupdateAdminQuestion(data) {
-    const question = data.question;
-    if (!question) return;
+function updateAdminGameView(data) {
+    const q = data.question;
+    if (!q) return;
 
-    // Atualizar progresso
-    document.getElementById('admin-current-q').textContent = question.questionNumber;
-    document.getElementById('admin-timer').textContent = (data.timeLeft || question.time) + 's';
-    document.getElementById('admin-q-progress').textContent = `Question ${question.questionNumber} of ${question.totalQuestions}`;
+    document.getElementById('admin-current-q').textContent = q.questionNumber;
+    document.getElementById('admin-timer').textContent = (data.timeLeft || q.time) + 's';
+    document.getElementById('admin-q-progress').textContent = `Pergunta ${q.questionNumber} de ${q.totalQuestions}`;
+    document.getElementById('admin-question-text').textContent = q.text;
 
-    // Texto da pergunta
-    document.getElementById('admin-question-text').textContent = question.text;
-
-    // Opções destacando a correta
-    const optionsContainer = document.getElementById('admin-options-display');
-    optionsContainer.innerHTML = question.options.map((opt, idx) => `
-        <div class="admin-option ${idx === question.correctAnswer ? 'correct' : ''}">
+    const optsContainer = document.getElementById('admin-options-display');
+    optsContainer.innerHTML = q.options.map((opt, idx) => `
+        <div class="admin-option ${idx === q.correctAnswer ? 'correct' : ''}">
             <div class="admin-option-letter">${LETTERS[idx]}</div>
-            <span style="color:#000; font-weight:600;">${opt}</span>
+            <span style="color:#000;font-weight:600;">${opt}</span>
         </div>
     `).join('');
 
-    // Mostrar resposta correta em texto
-    document.getElementById('admin-correct-ans').textContent = `${LETTERS[question.correctAnswer]} - ${question.options[question.correctAnswer]}`;
+    document.getElementById('admin-correct-ans').textContent = `${LETTERS[q.correctAnswer]} - ${q.options[q.correctAnswer]}`;
 
-    // Atualizar contagem de respostas
     const answers = data.answers || {};
     const currentAnswers = answers[data.currentQuestion] || {};
     const answeredCount = Object.keys(currentAnswers).length;
     document.getElementById('admin-answered-count').textContent = `${answeredCount}/${data.playerCount}`;
 }
 
-functionadminNextQuestion() {
-    // Placeholder - o timer automático já avança as perguntas
-    // Podemos adicionar funcionalidade de pular manualmente depois
+function adminNextQuestion() {
+    // Placeholder para funcionalidade futura
 }
 
-// ============================================
-// ADMIN - Resultados Finais
-// ============================================
-functionshowAdminFinalResults(ranking) {
+function showAdminFinalRanking(ranking) {
     showScreen('admin-final-ranking');
 
-    // Pódio
     const podium = document.getElementById('admin-podium');
     const top3 = ranking.slice(0, 3);
-    const positions = [1, 0, 2];
+    const order = [1, 0, 2];
 
-    podium.innerHTML = positions.map(pos => {
-        const player = top3[pos];
-        if (!player) return '';
-        const placeClass = pos === 0 ? 'second' : pos === 1 ? 'first' : 'third';
-        const avatarClass = pos === 1 ? 'first' : '';
+    podium.innerHTML = order.map(pos => {
+        const p = top3[pos];
+        if (!p) return '';
+        const cls = pos === 1 ? 'first' : pos === 0 ? 'second' : 'third';
         const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
-
         return `
             <div class="podium-place">
-                <div class="podium-avatar ${avatarClass}">${medal}</div>
-                <div class="podium-block ${placeClass}">
-                    <div class="podium-name">${player.name}</div>
-                    <div class="podium-score">${player.score} pts</div>
+                <div class="podium-avatar ${cls === 'first' ? 'first' : ''}">${medal}</div>
+                <div class="podium-block ${cls}">
+                    <div class="podium-name">${p.name}</div>
+                    <div class="podium-score">${p.score} pts</div>
                 </div>
             </div>
         `;
     }).join('');
 
-    // Lista completa
     const list = document.getElementById('admin-final-list');
     list.innerHTML = ranking.map((p, i) => `
         <div class="ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}">
@@ -600,20 +528,17 @@ functionshowAdminFinalResults(ranking) {
     `).join('');
 }
 
-functionadminBackToDashboard() {
+function adminBackToDashboard() {
     currentGame = null;
     questionsList = [];
-    updateQuestionsList();
+    renderQuestionsList();
     showScreen('admin-dashboard');
 }
 
 // ============================================
-// INICIALIZAÇÃO
+// INIT
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Restaurar token do admin se existir
-    const savedToken = localStorage.getItem('adminToken');
-    if (savedToken) {
-        adminToken = savedToken;
-    }
+    const saved = localStorage.getItem('adminToken');
+    if (saved) adminToken = saved;
 });
