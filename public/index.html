@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Montserrat', sans-serif;
@@ -22,13 +18,10 @@
             overflow-x: hidden;
         }
 
-        /* Animated Background */
         .bg-animation {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             overflow: hidden;
             z-index: -1;
         }
@@ -36,8 +29,7 @@
         .road {
             position: absolute;
             bottom: 0;
-            width: 100%;
-            height: 200px;
+            width: 100%; height: 200px;
             background: linear-gradient(to bottom, #1a1a1a 0%, #000000 100%);
             border-top: 4px solid #F5C500;
         }
@@ -45,15 +37,8 @@
         .road-lines {
             position: absolute;
             bottom: 100px;
-            width: 100%;
-            height: 10px;
-            background: repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 50px,
-                #F5C500 50px,
-                #F5C500 100px
-            );
+            width: 100%; height: 10px;
+            background: repeating-linear-gradient(90deg, transparent, transparent 50px, #F5C500 50px, #F5C500 100px);
             animation: moveRoad 2s linear infinite;
         }
 
@@ -62,7 +47,6 @@
             100% { transform: translateX(-100px); }
         }
 
-        /* Moving Cars */
         .car {
             position: absolute;
             bottom: 120px;
@@ -82,7 +66,6 @@
             100% { transform: translateX(0) scaleX(1); }
         }
 
-        /* Screens */
         .screen {
             display: none;
             min-height: 100vh;
@@ -97,7 +80,6 @@
             justify-content: center;
         }
 
-        /* Logo */
         .logo {
             font-size: 4rem;
             font-weight: 900;
@@ -108,9 +90,7 @@
             animation: pulse 2s ease-in-out infinite;
         }
 
-        .logo span {
-            color: #FFFFFF;
-        }
+        .logo span { color: #FFFFFF; }
 
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
@@ -125,7 +105,6 @@
             font-weight: 600;
         }
 
-        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -166,12 +145,29 @@
             box-shadow: 0 12px 0 #333333, 0 20px 30px rgba(255,255,255,0.2);
         }
 
-        /* Forms */
+        .btn-danger {
+            background: #dc3545;
+            color: #FFFFFF;
+            box-shadow: 0 8px 0 #8B0000, 0 15px 20px rgba(220,53,69,0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: #FFFFFF;
+            box-shadow: 0 8px 0 #1e7e34, 0 15px 20px rgba(40,167,69,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
         .form-container {
             background: #FFFFFF;
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
             border: 4px solid #F5C500;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
@@ -197,7 +193,8 @@
             font-size: 1rem;
         }
 
-        .input-group input {
+        .input-group input,
+        .input-group textarea {
             width: 100%;
             padding: 15px;
             border: 3px solid #000000;
@@ -208,13 +205,178 @@
             transition: all 0.3s;
         }
 
-        .input-group input:focus {
+        .input-group input:focus,
+        .input-group textarea:focus {
             outline: none;
             border-color: #F5C500;
             background: #FFFFFF;
         }
 
-        /* Question Screen */
+        .input-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Question Builder styles */
+        .question-builder-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 4px solid #000000;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .question-list {
+            margin-bottom: 20px;
+        }
+
+        .question-item {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 3px solid #000000;
+            position: relative;
+        }
+
+        .question-item.active {
+            border-color: #F5C500;
+            background: #FFFACD;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #F5C500;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            min-width: auto;
+            margin: 0;
+        }
+
+        .options-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .correct-answer-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .correct-answer-selector label {
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .correct-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .correct-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .correct-option span {
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .time-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-selector input[type="range"] {
+            flex: 1;
+        }
+
+        .time-value {
+            font-weight: 800;
+            color: #F5C500;
+            font-size: 1.2rem;
+            min-width: 50px;
+        }
+
+        /* Waiting Screen */
+        .waiting-screen {
+            text-align: center;
+        }
+
+        .waiting-animation {
+            font-size: 5rem;
+            margin: 30px 0;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .waiting-text {
+            font-size: 1.5rem;
+            color: #F5C500;
+            margin-bottom: 20px;
+        }
+
+        .players-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #F5C500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #000000;
+            border: 3px solid #000000;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Game Screen */
         .question-container {
             width: 100%;
             max-width: 900px;
@@ -244,7 +406,7 @@
             text-shadow: 2px 2px 0 #000000;
         }
 
-        .question-number {
+        .question-progress {
             text-align: center;
             font-size: 1.2rem;
             color: #F5C500;
@@ -298,6 +460,7 @@
             font-weight: 900;
             border-radius: 10px;
             border: 3px solid #000000;
+            flex-shrink: 0;
         }
 
         .option:hover {
@@ -319,6 +482,149 @@
         .option.wrong {
             background: #dc3545;
             color: #FFFFFF;
+        }
+
+        .option:disabled {
+            cursor: default;
+        }
+
+        /* Admin Game Screen */
+        .admin-game-screen {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .admin-game-header {
+            background: #FFFFFF;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 4px solid #F5C500;
+        }
+
+        .admin-game-header h2 {
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #000000;
+        }
+
+        .admin-question-box {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 4px solid #F5C500;
+        }
+
+        .admin-question-text {
+            font-size: 1.8rem;
+            color: #000000;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .admin-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .admin-option {
+            padding: 20px;
+            background: #f5f5f5;
+            border: 3px solid #000000;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .admin-option-letter {
+            width: 40px;
+            height: 40px;
+            background: #F5C500;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #000000;
+        }
+
+        .admin-answers-table {
+            width: 100%;
+            background: #FFFFFF;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #000000;
+        }
+
+        .admin-answers-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-answers-table th {
+            background: #F5C500;
+            color: #000000;
+            padding: 15px;
+            text-align: left;
+            font-weight: 800;
+        }
+
+        .admin-answers-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            color: #000000;
+        }
+
+        .answer-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .answer-status.correct {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .answer-status.wrong {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .answer-status.waiting {
+            background: #fff3cd;
+            color: #856404;
         }
 
         /* Ranking */
@@ -536,84 +842,15 @@
             font-weight: 800;
         }
 
-        .question-builder {
-            background: #FFFFFF;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            border: 4px solid #000000;
-        }
-
-        .question-item {
-            background: #f5f5f5;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 3px solid #000000;
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .question-number {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #F5C500;
-        }
-
-        /* Waiting Screen */
-        .waiting-screen {
+        .empty-questions {
             text-align: center;
+            padding: 40px;
+            color: #666;
         }
 
-        .waiting-animation {
-            font-size: 5rem;
-            margin: 30px 0;
-            animation: bounce 1s ease infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .waiting-text {
-            font-size: 1.5rem;
-            color: #F5C500;
-            margin-bottom: 20px;
-        }
-
-        .players-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .player-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #F5C500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #000000;
-            border: 3px solid #000000;
-            animation: popIn 0.5s ease;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            80% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .empty-questions-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
         }
 
         /* Loading Animation */
@@ -632,53 +869,22 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Confetti */
-        .confetti {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        .confetti-piece {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #F5C500;
-            animation: confetti-fall 3s ease-out forwards;
-        }
-
-        @keyframes confetti-fall {
-            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
-            .logo {
-                font-size: 2.5rem;
-            }
-
+            .logo { font-size: 2.5rem; }
             .btn {
                 min-width: 250px;
                 padding: 15px 30px;
                 font-size: 1.1rem;
             }
-
-            .options-grid {
+            .options-grid, .admin-options-grid, .options-inputs {
                 grid-template-columns: 1fr;
             }
-
-            .podium-container {
-                transform: scale(0.7);
-            }
-
-            .question-text {
-                font-size: 1.5rem;
-            }
+            .podium-container { transform: scale(0.7); }
+            .question-text { font-size: 1.5rem; }
+            .admin-answers-table { font-size: 0.9rem; }
+            .admin-answers-table th,
+            .admin-answers-table td { padding: 8px; }
         }
     </style>
 </head>
@@ -692,19 +898,19 @@
         <div class="car">🚙</div>
     </div>
 
-    <!-- Home Screen -->
+    <!-- ============================================ -->
+    <!-- HOME SCREEN -->
+    <!-- ============================================ -->
     <div id="home-screen" class="screen active">
         <div class="logo">QUIZ<span>99</span></div>
         <div class="tagline">🏁 Race Your Knowledge!</div>
-        <button class="btn" onclick="showScreen('player-login')">
-            🎮 Join Game
-        </button>
-        <button class="btn btn-secondary" onclick="showScreen('admin-login')">
-            👤 Admin Area
-        </button>
+        <button class="btn" onclick="showScreen('player-login')">🎮 Join Game</button>
+        <button class="btn btn-secondary" onclick="showScreen('admin-login')">👤 Admin Area</button>
     </div>
 
-    <!-- Player Login -->
+    <!-- ============================================ -->
+    <!-- PLAYER LOGIN -->
+    <!-- ============================================ -->
     <div id="player-login" class="screen">
         <div class="form-container">
             <div class="form-title">🏁 Join the Race</div>
@@ -720,16 +926,14 @@
                 <label>Game Code</label>
                 <input type="text" id="game-code" placeholder="ABC123" maxlength="6">
             </div>
-            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">
-                🚀 Start Racing
-            </button>
-            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">
-                ← Back
-            </button>
+            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">🚀 Start Racing</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Back</button>
         </div>
     </div>
 
-    <!-- Admin Login -->
+    <!-- ============================================ -->
+    <!-- ADMIN LOGIN -->
+    <!-- ============================================ -->
     <div id="admin-login" class="screen">
         <div class="form-container">
             <div class="form-title">👑 Admin Login</div>
@@ -741,16 +945,14 @@
                 <label>Password</label>
                 <input type="password" id="admin-password" placeholder="••••••">
             </div>
-            <button class="btn" onclick="adminLogin()" style="width:100%; margin-top:20px;">
-                🔑 Login
-            </button>
-            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">
-                ← Back
-            </button>
+            <button class="btn" onclick="adminLogin()" style="width:100%; margin-top:20px;">🔑 Login</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Back</button>
         </div>
     </div>
 
-    <!-- Waiting Screen -->
+    <!-- ============================================ -->
+    <!-- WAITING SCREEN (PLAYER) -->
+    <!-- ============================================ -->
     <div id="waiting-screen" class="screen">
         <div class="waiting-screen">
             <div class="waiting-animation">🚕💨</div>
@@ -760,37 +962,37 @@
         </div>
     </div>
 
-    <!-- Game Screen -->
+    <!-- ============================================ -->
+    <!-- GAME SCREEN (PLAYER) -->
+    <!-- ============================================ -->
     <div id="game-screen" class="screen">
         <div class="question-container">
             <div class="timer-bar">
                 <div class="timer-progress" id="timer-bar"></div>
             </div>
             <div class="timer-text" id="timer-text">30</div>
-            <div class="question-number">Question <span id="current-q">1</span> / <span id="total-q">10</span></div>
+            <div class="question-progress"><span id="current-q">1</span> / <span id="total-q">10</span></div>
             <div class="question-text" id="question-text">Loading question...</div>
-            <div class="options-grid" id="options-grid">
-                <!-- Options will be inserted here -->
-            </div>
+            <div class="options-grid" id="options-grid"></div>
         </div>
     </div>
 
-    <!-- Ranking Screen -->
+    <!-- ============================================ -->
+    <!-- RANKING SCREEN -->
+    <!-- ============================================ -->
     <div id="ranking-screen" class="screen">
         <div class="ranking-container">
             <div class="ranking-title">🏆 Race Standings</div>
-            <div class="ranking-list" id="ranking-list">
-                <!-- Ranking items will be inserted here -->
-            </div>
+            <div class="ranking-list" id="ranking-list"></div>
         </div>
     </div>
 
-    <!-- Final Podium -->
+    <!-- ============================================ -->
+    <!-- PODIUM SCREEN (FINAL) -->
+    <!-- ============================================ -->
     <div id="podium-screen" class="screen">
         <div class="ranking-title">🏁 Final Results!</div>
-        <div class="podium-container" id="podium-container">
-            <!-- Podium will be inserted here -->
-        </div>
+        <div class="podium-container" id="podium-container"></div>
         <div class="coupon-container" id="coupon-section" style="display:none;">
             <div class="coupon-title">🎉 You Won a Coupon!</div>
             <div class="coupon-discount" id="coupon-discount">R$ 20,00 OFF</div>
@@ -799,42 +1001,192 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
+    <!-- ============================================ -->
+    <!-- ADMIN DASHBOARD (CREATE QUIZ) -->
+    <!-- ============================================ -->
     <div id="admin-dashboard" class="screen">
         <div class="admin-panel">
             <div class="admin-header">
-                <div class="admin-title">👑 Admin Dashboard</div>
-                <button class="btn" onclick="logoutAdmin()">Logout</button>
+                <div class="admin-title">👑 Create New Quiz</div>
+                <button class="btn btn-secondary btn-small" onclick="logoutAdmin()">Logout</button>
             </div>
 
-            <div class="question-builder">
-                <h2 style="color:#000; margin-bottom:20px;">📝 Create Quiz</h2>
+            <!-- Quiz Title -->
+            <div class="question-builder-container">
                 <div class="input-group">
-                    <label>Quiz Title</label>
-                    <input type="text" id="quiz-title" placeholder="Enter quiz title">
+                    <label>📝 Quiz Title</label>
+                    <input type="text" id="quiz-title" placeholder="Ex: Quiz 99 - Jornada do Motorista">
                 </div>
-                <div class="input-group">
-                    <label>Questions (Formato: pergunta + 4 opções + resposta correta 0-3 + tempo)</label>
-                    <textarea id="quiz-questions" rows="10" placeholder="Exemplo:
-Quanto é 2+2?
-1
-2
-3
-4
-3
-30"></textarea>
-                </div>
-                <button class="btn" onclick="createGame()">🚀 Create Game</button>
             </div>
 
-            <div class="form-container" id="game-info" style="display:none;">
-                <div class="form-title">🎮 Game Created!</div>
-                <div class="input-group">
-                    <label>Game Code</label>
-                    <input type="text" id="created-game-code" readonly style="font-size:1.5rem; text-align:center;">
+            <!-- Questions List -->
+            <div class="question-builder-container">
+                <h2 style="color:#000; margin-bottom:20px;">❓ Questions</h2>
+                <div id="questions-list" class="question-list">
+                    <div class="empty-questions">
+                        <div class="empty-questions-icon">📝</div>
+                        <p>No questions yet. Add your first question below!</p>
+                    </div>
                 </div>
-                <button class="btn" onclick="startGame()">🏁 Start Race</button>
             </div>
+
+            <!-- Add Question Form -->
+            <div class="question-builder-container" id="add-question-form">
+                <h3 style="color:#000; margin-bottom:20px;">➕ Add New Question</h3>
+
+                <div class="input-group">
+                    <label>Question Text</label>
+                    <textarea id="new-question-text" placeholder="Enter your question here..."></textarea>
+                </div>
+
+                <label style="color:#000; font-weight:700; margin-bottom:10px; display:block;">Options (check the correct answer)</label>
+                <div class="options-inputs">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <input type="text" id="option-0" placeholder="Option A">
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <input type="text" id="option-1" placeholder="Option B">
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <input type="text" id="option-2" placeholder="Option C">
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <input type="text" id="option-3" placeholder="Option D">
+                    </div>
+                </div>
+
+                <div class="correct-answer-selector">
+                    <label>Correct Answer:</label>
+                    <label class="correct-option">
+                        <input type="radio" name="correct-answer" value="0" checked>
+                        <span>A</span>
+                    </label>
+                    <label class="correct-option">
+                        <input type="radio" name="correct-answer" value="1">
+                        <span>B</span>
+                    </label>
+                    <label class="correct-option">
+                        <input type="radio" name="correct-answer" value="2">
+                        <span>C</span>
+                    </label>
+                    <label class="correct-option">
+                        <input type="radio" name="correct-answer" value="3">
+                        <span>D</span>
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label>Time per Question</label>
+                    <div class="time-selector">
+                        <input type="range" id="question-time" min="10" max="60" value="30" oninput="document.getElementById('time-display').textContent = this.value + 's';">
+                        <span class="time-value" id="time-display">30s</span>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="addQuestion()">➕ Add Question</button>
+            </div>
+
+            <!-- Create Game Button -->
+            <div class="question-builder-container" style="text-align:center;">
+                <button class="btn btn-success" id="create-game-btn" onclick="createGame()" disabled style="font-size:1.5rem; padding:25px 50px;">🚀 Create Game</button>
+                <p id="create-game-error" style="color:#dc3545; margin-top:15px; display:none;">⚠️ Add at least 1 question before creating the game!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ADMIN WAITING ROOM -->
+    <!-- ============================================ -->
+    <div id="admin-waiting-room" class="screen">
+        <div class="admin-panel">
+            <div class="admin-game-header">
+                <div>
+                    <h2>🎮 Game Created!</h2>
+                    <div class="game-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Game Code</span>
+                            <span class="stat-value" id="admin-game-code" style="font-size:2rem; color:#F5C500;">---</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Players</span>
+                            <span class="stat-value" id="admin-player-count">0</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="startGame()">🏁 START RACE</button>
+            </div>
+
+            <div class="form-container">
+                <h3 style="color:#000; margin-bottom:20px;">👥 Connected Players</h3>
+                <div id="admin-waiting-players" class="players-list" style="justify-content:flex-start;"></div>
+                <p id="no-players-msg" style="color:#666; text-align:center; padding:40px;">Waiting for players to join...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ADMIN GAME SCREEN (CONTROL PANEL) -->
+    <!-- ============================================ -->
+    <div id="admin-game-control" class="screen">
+        <div class="admin-game-screen">
+            <div class="admin-game-header">
+                <div>
+                    <h2>🏁 Race in Progress</h2>
+                    <div class="game-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Question</span>
+                            <span class="stat-value" id="admin-current-q">1</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Time Left</span>
+                            <span class="stat-value" id="admin-timer" style="color:#F5C500;">30s</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Players Answered</span>
+                            <span class="stat-value" id="admin-answered-count">0/0</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn" onclick="adminNextQuestion()" id="btn-next-q">Next Question →</button>
+            </div>
+
+            <div class="admin-question-box">
+                <div class="question-progress" id="admin-q-progress">Question 1 of 10</div>
+                <div class="admin-question-text" id="admin-question-text">Loading...</div>
+
+                <div class="admin-options-grid" id="admin-options-display"></div>
+
+                <div style="margin-top:20px; padding:15px; background:#d4edda; border-radius:10px;">
+                    <strong style="color:#155724;">✅ Correct Answer: <span id="admin-correct-ans">-</span></strong>
+                </div>
+            </div>
+
+            <div class="admin-answers-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Answer</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-answers-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ADMIN FINAL RANKING -->
+    <!-- ============================================ -->
+    <div id="admin-final-ranking" class="screen">
+        <div class="admin-panel" style="text-align:center;">
+            <div class="ranking-title">🏁 Race Finished!</div>
+            <div class="podium-container" id="admin-podium"></div>
+            <div class="ranking-list" id="admin-final-list" style="margin-bottom:30px;"></div>
+            <button class="btn btn-success" onclick="adminBackToDashboard()">🎮 Create New Game</button>
         </div>
     </div>
 

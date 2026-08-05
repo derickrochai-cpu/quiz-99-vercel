@@ -1,8 +1,7 @@
 /**
  * ============================================
- * QUIZ 99 - CLIENTE (HTTP POLLING VERSION)
+ * QUIZ 99 - CLIENTE COMPLETO
  * ============================================
- * Lógica do frontend para o Quiz - Funciona na Vercel
  */
 
 // Estado global
@@ -11,19 +10,26 @@ let currentPlayer = null;
 let currentQuestion = null;
 let pollInterval = null;
 let adminToken = null;
+let questionsList = []; // Lista temporária para criquiz
+
+// Letras para opções
+const LETTERS = ['A', 'B', 'C', 'D'];
 
 // ============================================
-// NAVEGAÇAÇO ENTRE TELAS
+// UTILIDADES
 // ============================================
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
-    document.getElementById(screenId).classList.add('active');
+    const targetScreen = document.getElementById(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+    }
 }
 
 // ============================================
-// POLLING - ATUALIZAÇÃO DO JOGO
+// POLLING - Atualizações do Jogo
 // ============================================
 function startPolling(gameCode, role) {
     if (pollInterval) clearInterval(pollInterval);
@@ -31,76 +37,89 @@ function startPolling(gameCode, role) {
     pollInterval = setInterval(async () => {
         try {
             const response = await fetch(`/api/game/poll?gameCode=${gameCode}`);
-            if (!response.ok) return;
+            if (!response) return;
+            if (response.status === 304) return; // Not modified
+            if (!response) return;
 
             const data = await response.json();
-            handleGameUpdate(data, role);
+            handleGame(data, role);
         } catch (err) {
-            console.log('Poll error:', err);
+            console.log('Poll error (normal if 304):');
         }
     }, 1000);
 }
 
-function stopPolling() {
+funtion stopPolling() {
     if (pollInterval) {
         clearInterval(pollInterval);
         pollInterval = null;
     }
 }
 
-function handleGameUpdate(data, role) {
-    // Jogo iniciou
-    if (data.status === 'playing' && data.question && !currentQuestion) {
-        currentQuestion = data.question;
-        if (role === 'player') {
+// ============================================
+// MANIPULAÇÃO DO ESTADO DO JOGO
+// ============================================
+funion handleGame(data, role) {
+    // Debug - remover depois
+    console.log('[handleGame]', { role, status: data.status, currentQuestion: data.currentQuestion });
+
+    // JOGADOR - Tela de espera → Jogo iniciou
+    if (role === 'player' && data.status === 'playing') {
+        if (data.question && currentQuestion?.id !== data.question.id) {
+            currentQuestion = data.question;
             showScreen('game-screen');
-            showQuestion(data.question);
-        } else if (role === 'admin') {
-            showAdminQuestion(data);
+            showPlayerQuestion(data.question, data.timeLeft);
         }
+        updatePlayerTimer(data.timeLeft);
     }
 
-    // Nova pergunta
-    if (data.status === 'playing' && data.question && data.question.id !== currentQuestion?.id) {
-        currentQuestion = data.question;
+    // JOGADOR - Atualizar lista de jogadores na tela de espera
+    if (role === 'player' && data.status === 'waiting' && data.players) {
+        updateWaitingPlayers(data.players);
+    }
+
+    // ADMIN - Sala de espera → Atualizar jogadores
+    if (role === 'admin' && data.status === 'waiting' && document.getElementById('admin-waiting-room')?.classList.contains('active')) {
+        updateAdminWaitingPlayers(data.players);
+    }
+
+    // ADMIN - Jogo iniciou → Ir para tela de controle
+    if (role === 'admin' && data.status === 'playing' && !document.getElementById('admin-game-control')?.classList.contains('active')) {
+        showScreen('admin-game-control');
+        startPolling(currentGame.code, 'admin');
+    }
+
+    // ADMIN - Atualizar pergunta atual
+    if (role === 'admin' && data.status === 'playing' && data.question) {
+        updateAdminQuestion(data);
+    }
+
+    // Ambos - Jogo terminou
+    if (data.status === 'finished' && data.ranking) {
+        stopPolling();
         if (role === 'player') {
-            showQuestion(data.question);
-        } else if (role === 'admin') {
-            showAdminQuestion(data);
+            showPlayerResults(data.ranking);
+        } else {
+            showAdminFinalResults(data.ranking);
         }
     }
 
     // Atualizar timer
     if (data.timeLeft !== undefined) {
-        updateTimer(data.timeLeft);
-    }
-
-    // Atualizar lista de jogadores (admin)
-    if (role === 'admin' && data.players) {
-        updatePlayersList(data.players);
-    }
-
-    // Jogo terminou
-    if (data.status === 'finished' && data.ranking) {
-        stopPolling();
-        if (role === 'player') {
-            showRanking(data.ranking);
-        } else {
-            showAdminRanking(data.ranking);
-        }
+        updateTimerDisplay(data.timeLeft);
     }
 }
 
 // ============================================
-// JOGADOR - ENTRAR NO JOGO
+// JOGADOR - Entrar no Jogo
 // ============================================
-async function joinGame() {
+async funion joinGame() {
     const name = document.getElementById('player-name').value.trim();
     const email = document.getElementById('player-email').value.trim();
     const gameCode = document.getElementById('game-code').value.trim().toUpperCase();
 
     if (!name || !email || !gameCode) {
-        alert('Please fill in all fields!');
+        alert('⚠️ Please fill in all fields!');
         return;
     }
 
@@ -114,7 +133,7 @@ async function joinGame() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error || 'Error joining game');
+            alert(data.error || '❌ Error joining game');
             return;
         }
 
@@ -125,136 +144,70 @@ async function joinGame() {
         startPolling(gameCode, 'player');
 
     } catch (err) {
-        alert('Error joining game: ' + err.message);
+        alert('❌ Error joining game: ' + err.message);
     }
 }
 
-// ============================================
-// ADMIN - LOGIN
-// ============================================
-async function adminLogin() {
-    const email = document.getElementById('admin-email').value.trim();
-    const password = document.getElementById('admin-password').value;
-
-    if (!email || !password) {
-        alert('Please fill in all fields!');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            alert('Invalid credentials!');
-            return;
-        }
-
-        adminToken = data.token;
-        localStorage.setItem('adminToken', adminToken);
-        showScreen('admin-dashboard');
-        loadAdminDashboard();
-
-    } catch (err) {
-        alert('Login error: ' + err.message);
-    }
+funion updateWaitingPlayers(players) {
+    document.getElementById('waiting-players').textContent = `Players: ${players.length}`;
+    const container = document.getElementById('players-avatars');
+    container.innerHTML = players.map(p =>
+        `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
+    ).join('');
 }
 
 // ============================================
-// ADMIN - CRIAR JOGO
+// JOGADOR - Mostrar Pergunta
 // ============================================
-async function createGame() {
-    const title = document.getElementById('quiz-title').value.trim();
-    const questionsText = document.getElementById('quiz-questions').value.trim();
+funion showPlayerQuestion(question, timeLeft) {
+    document.getElementById('current-q').textContent = question.questionNumber;
+    document.getElementById('total-q').textContent = question.totalQuestions;
+    document.getElementById('question-text').textContent = question.text;
+    document.getElementById('timer-text').textContent = timeLeft || question.time;
+    document.getElementById('timer-bar').style.width = '100%';
 
-    if (!title || !questionsText) {
-        alert('Please fill in all fields!');
-        return;
-    }
+    const optionsGrid = document.getElementById('options-grid');
+    optionsGrid.innerHTML = '';
 
-    // Parse questions
-    const questions = parseQuestions(questionsText);
-    if (questions.length === 0) {
-        alert('Invalid questions format!');
-        return;
-    }
+    question.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.innerHTML = `
+            <span class="option-letter">${LETTERS[index]}</span>
+            <span>${option}</span>
+        `;
+        btn.onclick = () => submitAnswer(index);
+        optionsGrid.appendChild(btn);
+    });
 
-    try {
-        const response = await fetch('/api/game/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify({ title, questions })
-        });
+    // Guardar tempo de início
+    currentQuestion.startTime = Date.now();
+}
 
-        const data = await response.json();
+funion updatePlayerTimer(timeLeft) {
+    if (timeLeft === undefined) return;
+    document.getElementById('timer-text').textContent = timeLeft;
+    const maxTime = currentQuestion?.time || 30;
+    const percentage = (timeLeft / maxTime) * 100;
+    document.getElementById('timer-bar').style.width = percentage + '%';
+}
 
-        if (!response.ok) {
-            alert(data.error || 'Error creating game');
-            return;
-        }
-
-        document.getElementById('created-game-code').value = data.gameCode;
-        document.getElementById('game-info').style.display = 'block';
-
-        currentGame = { code: data.gameCode };
-        startPolling(data.gameCode, 'admin');
-
-    } catch (err) {
-        alert('Error creating game: ' + err.message);
-    }
+funion updateTimerDisplay(timeLeft) {
+    // Placeholder para updates gerais de timer
 }
 
 // ============================================
-// ADMIN - INICIAR JOGO
+// JOGADOR - Enviar Resposta
 // ============================================
-async function startGame() {
-    const gameCode = document.getElementById('created-game-code').value;
-
-    if (!gameCode) {
-        alert('Error: No game code found!');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/game/start', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify({ gameCode })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            alert(data.error || 'Error starting game');
-            return;
-        }
-
-        // Polling vai detectar mudança de status
-
-    } catch (err) {
-        alert('Error starting game: ' + err.message);
-    }
-}
-
-// ============================================
-// JOGADOR - RESPONDER PERGUNTA
-// ============================================
-async function submitAnswer(answerIndex) {
+async funion submitAnswer(answerIndex) {
     if (!currentGame || !currentQuestion) return;
 
-    const startTime = currentQuestion.startTime || Date.now();
-    const answerTime = Date.now() - startTime;
+    // Desabilitar todos os botões
+    document.querySelectorAll('.option').forEach(btn => {
+        btn.disabled = true;
+    });
+
+    const answerTime = Date.now() - (currentQuestion.startTime || Date.now());
 
     try {
         const response = await fetch('/api/game/answer', {
@@ -273,10 +226,10 @@ async function submitAnswer(answerIndex) {
 
         const data = await response.json();
 
-        // Mostrar feedback
-        const buttons = document.querySelectorAll('.answer-btn');
+        // Mostrar feedback visual
+        const buttons = document.querySelectorAll('.option');
         buttons.forEach((btn, idx) => {
-            btn.disabled = true;
+            btn.classList.remove('selected');
             if (idx === currentQuestion.correctAnswer) {
                 btn.classList.add('correct');
             } else if (idx === answerIndex && !data.isCorrect) {
@@ -290,87 +243,377 @@ async function submitAnswer(answerIndex) {
 }
 
 // ============================================
-// FUNÇÕES AUXILIARES
+// JOGADOR - Mostrar Resultados
 // ============================================
-function parseQuestions(text) {
-    const questions = [];
-    const blocks = text.split('\n\n');
+funion showPlayerResults(ranking) {
+    showScreen('podium-screen');
 
-    for (const block of blocks) {
-        const lines = block.split('\n').filter(l => l.trim());
-        if (lines.length < 6) continue;
+    const podium = document.getElementById('podium-container');
+    const top3 = ranking.slice(0, 3);
+    const positions = [1, 0, 2]; // 2º, 1º, 3º para visual
 
-        const text = lines[0];
-        const options = lines.slice(1, 5);
-        const correctLine = lines[5];
-        const correctAnswer = parseInt(correctLine.replace(/[^0-3]/g, ''));
-        const timeLine = lines[6] || '30';
-        const time = parseInt(timeLine.replace(/[^0-9]/g, '')) || 30;
+    podium.innerHTML = positions.map(pos => {
+        const player = top3[pos];
+        if (!player) return '';
+        const placeClass = pos === 0 ? 'second' : pos === 1 ? 'first' : 'third';
+        const avatarClass = pos === 1 ? 'first' : '';
+        const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
 
-        if (options.length === 4 && !isNaN(correctAnswer)) {
-            questions.push({ text, options, correctAnswer, time });
+        return `
+            <div class="podium-place">
+                <div class="podium-avatar ${avatarClass}">${medal}</div>
+                <div class="podium-block ${placeClass}">
+                    <div class="podium-name">${player.name}</div>
+                    <div class="podium-score">${player.score} pts</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Mostrar cupom (placeholder)
+    document.getElementById('coupon-section').style.display = 'block';
+}
+
+// ============================================
+// ADMIN - Login
+// ============================================
+async funion adminLogin() {
+    const email = document.getElementById('admin-email').value.trim();
+    const password = document.getElementById('admin-password').value;
+
+    if (!email || !password) {
+        alert('⚠️ Please fill in all fields!');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert('❌ Invalid credentials!');
+            return;
         }
-    }
 
-    return questions;
-}
+        adminToken = data.token;
+        localStorage.setItem('adminToken', adminToken);
 
-function showQuestion(question) {
-    document.getElementById('question-text').textContent = question.text;
-    const optionsDiv = document.getElementById('answer-options');
-    optionsDiv.innerHTML = '';
+        // Resetar lista de perguntas
+        questionsList = [];
+        updateQuestionsList();
 
-    question.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'answer-btn';
-        btn.textContent = option;
-        btn.onclick = () => submitAnswer(index);
-        optionsDiv.appendChild(btn);
-    });
+        showScreen('admin-dashboard');
 
-    question.startTime = Date.now();
-}
-
-function showAdminQuestion(data) {
-    // Implementar tela do admin com pergunta
-    console.log('Admin question:', data.question);
-}
-
-function updateTimer(timeLeft) {
-    const timerEl = document.getElementById('timer');
-    if (timerEl) {
-        timerEl.textContent = timeLeft;
+    } catch (err) {
+        alert('❌ Login error: ' + err.message);
     }
 }
 
-function updatePlayersList(players) {
-    const listEl = document.getElementById('players-list');
-    if (listEl) {
-        listEl.innerHTML = players.map(p => `<div>${p.name}</div>`).join('');
-    }
-}
-
-function showRanking(ranking) {
-    console.log('Ranking:', ranking);
-    showScreen('results-screen');
-}
-
-function showAdminRanking(ranking) {
-    console.log('Admin ranking:', ranking);
-}
-
-function loadAdminDashboard() {
-    adminToken = localStorage.getItem('adminToken');
-    console.log('Admin dashboard loaded');
-}
-
-function logoutAdmin() {
+funion logoutAdmin() {
     adminToken = null;
     localStorage.removeItem('adminToken');
-    showScreen('admin-login');
+    currentGame = null;
+    questionsList = [];
+    stopPolling();
+    updateQuestionsList();
+    showScreen('home-screen');
 }
 
-// Inicializar
-if (localStorage.getItem('adminToken')) {
-    adminToken = localStorage.getItem('adminToken');
+// ============================================
+// ADMIN - Criar Perguntas (Visual)
+// ============================================
+funion addQuestion() {
+    const text = document.getElementById('new-question-text').value.trim();
+    const option0 = document.getElementById('option-0').value.trim();
+    const option1 = document.getElementById('option-1').value.trim();
+    const option2 = document.getElementById('option-2').value.trim();
+    const option3 = document.getElementById('option-3').value.trim();
+
+    const options = [option0, option1, option2, option3];
+    const correctAnswer = parseInt(document.querySelector('input[name="correct-answer"]:checked')?.value || '0');
+    const time = parseInt(document.getElementById('question-time').value);
+
+    if (!text) {
+        alert('⚠️ Please enter a question!');
+        return;
+    }
+
+    if (options.some(o => !o)) {
+        alert('⚠️ Please fill in all 4 options!');
+        return;
+    }
+
+    questionsList.push({
+        text,
+        options,
+        correctAnswer,
+        time
+    });
+
+    // Limpar formulário
+    document.getElementById('new-question-text').value = '';
+    document.getElementById('option-0').value = '';
+    document.getElementById('option-1').value = '';
+    document.getElementById('option-2').value = '';
+    document.getElementById('option-3').value = '';
+    document.querySelector('input[name="correct-answer"][value="0"]').checked = true;
+    document.getElementById('question-time').value = 30;
+    document.getElementById('time-display').textContent = '30s';
+
+    updateQuestionsList();
 }
+
+funion removeQuestion(index) {
+    questionsList.splice(index, 1);
+    updateQuestionsList();
+}
+
+funion updateQuestionsList() {
+    const container = document.getElementById('questions-list');
+    const createBtn = document.getElementById('create-game-btn');
+    const errorMsg = document.getElementById('create-game-error');
+
+    // Habilitar/desabilitar botão de criar
+    if (questionsList.length === 0) {
+        createBtn.disabled = true;
+        errorMsg.style.display = 'block';
+    } else {
+        createBtn.disabled = false;
+        errorMsg.style.display = 'none';
+    }
+
+    // Mostrar perguntas
+    if (questionsList.length === 0) {
+        container.innerHTML = `
+            <div class="empty-questions">
+                <div class="empty-questions-icon">📝</div>
+                <p>No questions yet. Add your first question below!</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = questionsList.map((q, index) => `
+        <div class="question-item">
+            <div class="question-header">
+                <span class="question-number">Question ${index + 1}</span>
+                <div class="question-actions">
+                    <button class="btn btn-danger btn-small" onclick="removeQuestion(${index})">🗑️ Remove</button>
+                </div>
+            </div>
+            <p style="color:#000; margin-bottom:10px; font-weight:600;">${q.text}</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                ${q.options.map((opt, i) => `
+                    <div style="padding:10px; background:${i === q.correctAnswer ? '#d4edda' : '#f5f5f5'};
+                                border:2px solid ${i === q.correctAnswer ? '#28a745' : '#ddd'};
+                                border-radius:8px; color:#000; font-size:0.9rem;">
+                        ${LETTERS[i]}. ${opt} ${i === q.correctAnswer ? '✅' : ''}
+                    </div>
+                `).join('')}
+            </div>
+            <p style="color:#666; font-size:0.9rem;">⏱️ ${q.time} seconds</p>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// ADMIN - Criar Jogo
+// ============================================
+async funion createGame() {
+    const title = document.getElementById('quiz-title').value.trim();
+
+    if (!title) {
+        alert('⚠️ Please enter a quiz title!');
+        return;
+    }
+
+    if (questionsList.length === 0) {
+        alert('⚠️ Add at least 1 question!');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/game/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ title, questions: questionsList })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.error || '❌ Error creating game');
+            return;
+        }
+
+        currentGame = { code: data.gameCode, title };
+
+        // Mostrar código na tela de espera
+        document.getElementById('admin-game-code').textContent = data.gameCode;
+
+        showScreen('admin-waiting-room');
+        startPolling(data.gameCode, 'admin');
+
+    } catch (err) {
+        alert('❌ Error creating game: ' + err.message);
+    }
+}
+
+funion updateAdminWaitingPlayers(players) {
+    const countEl = document.getElementById('admin-player-count');
+    const container = document.getElementById('admin-waiting-players');
+    const noMsg = document.getElementById('no-players-msg');
+
+    if (countEl) countEl.textContent = players?.length || 0;
+
+    if (!container) return;
+
+    if (!players || players.length === 0) {
+        container.innerHTML = '';
+        if (noMsg) noMsg.style.display = 'block';
+        return;
+    }
+
+    if (noMsg) noMsg.style.display = 'none';
+    container.innerHTML = players.map(p =>
+        `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
+    ).join('');
+}
+
+// ============================================
+// ADMIN - Iniciar Jogo
+// ============================================
+async funion startGame() {
+    if (!currentGame?.code) {
+        alert('⚠️ No game found!');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/game/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ gameCode: currentGame.code })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.error || '❌ Error starting game');
+            return;
+        }
+
+        // Tela de controle será mostrada pelo polling
+
+    } catch (err) {
+        alert('❌ Error starting game: ' + err.message);
+    }
+}
+
+// ============================================
+// ADMIN - Tela de Controle do Jogo
+// ============================================
+funion updateAdminQuestion(data) {
+    const question = data.question;
+    if (!question) return;
+
+    // Atualizar progresso
+    document.getElementById('admin-current-q').textContent = question.questionNumber;
+    document.getElementById('admin-timer').textContent = (data.timeLeft || question.time) + 's';
+    document.getElementById('admin-q-progress').textContent = `Question ${question.questionNumber} of ${question.totalQuestions}`;
+
+    // Texto da pergunta
+    document.getElementById('admin-question-text').textContent = question.text;
+
+    // Opções destacando a correta
+    const optionsContainer = document.getElementById('admin-options-display');
+    optionsContainer.innerHTML = question.options.map((opt, idx) => `
+        <div class="admin-option ${idx === question.correctAnswer ? 'correct' : ''}">
+            <div class="admin-option-letter">${LETTERS[idx]}</div>
+            <span style="color:#000; font-weight:600;">${opt}</span>
+        </div>
+    `).join('');
+
+    // Mostrar resposta correta em texto
+    document.getElementById('admin-correct-ans').textContent = `${LETTERS[question.correctAnswer]} - ${question.options[question.correctAnswer]}`;
+
+    // Atualizar contagem de respostas
+    const answers = data.answers || {};
+    const currentAnswers = answers[data.currentQuestion] || {};
+    const answeredCount = Object.keys(currentAnswers).length;
+    document.getElementById('admin-answered-count').textContent = `${answeredCount}/${data.playerCount}`;
+}
+
+funion adminNextQuestion() {
+    // Placeholder - o timer automático já avança as perguntas
+    // Podemos adicionar funcionalidade de pular manualmente depois
+}
+
+// ============================================
+// ADMIN - Resultados Finais
+// ============================================
+funion showAdminFinalResults(ranking) {
+    showScreen('admin-final-ranking');
+
+    // Pódio
+    const podium = document.getElementById('admin-podium');
+    const top3 = ranking.slice(0, 3);
+    const positions = [1, 0, 2];
+
+    podium.innerHTML = positions.map(pos => {
+        const player = top3[pos];
+        if (!player) return '';
+        const placeClass = pos === 0 ? 'second' : pos === 1 ? 'first' : 'third';
+        const avatarClass = pos === 1 ? 'first' : '';
+        const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
+
+        return `
+            <div class="podium-place">
+                <div class="podium-avatar ${avatarClass}">${medal}</div>
+                <div class="podium-block ${placeClass}">
+                    <div class="podium-name">${player.name}</div>
+                    <div class="podium-score">${player.score} pts</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Lista completa
+    const list = document.getElementById('admin-final-list');
+    list.innerHTML = ranking.map((p, i) => `
+        <div class="ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}">
+            <div class="rank-position">#${i + 1}</div>
+            <div class="rank-name">${p.name}</div>
+            <div class="rank-score">${p.score} pts</div>
+        </div>
+    `).join('');
+}
+
+funion adminBackToDashboard() {
+    currentGame = null;
+    questionsList = [];
+    updateQuestionsList();
+    showScreen('admin-dashboard');
+}
+
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Restaurar token do admin se existir
+    const savedToken = localStorage.getItem('adminToken');
+    if (savedToken) {
+        adminToken = savedToken;
+    }
+});
