@@ -59,6 +59,7 @@ module.exports = async (req, res) => {
     currentQuestion: 0,
     startedAt: Date.now(),
     updatedAt: now,
+    questionStartedAt: now,  // Marca quando a primeira pergunta começou
     answers: {},
     timeLeft: game.questions[0].time
   };

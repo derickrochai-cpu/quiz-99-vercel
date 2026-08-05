@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
   };
 
   // Atualizar SÓ as respostas, não o timestamp da pergunta
-  await updateGame(gameCode, { answers });
+  await updateGame(gameCode, { answers, skipTimestampUpdate: true });
 
   res.json({
     success: true,
