@@ -109,14 +109,44 @@ module.exports = async (req, res) => {
         options: q.options,
         time: q.time,
         questionNumber: game.currentQuestion + 1,
-        totalQuestions: game.questions.length,
-        correctAnswer: q.correctAnswer
+        totalQuestions: game.questions.length
       };
+
+      // Só mostrar a resposta correta quando o tempo acabar (timeLeft = 0)
+      if (timeLeft === 0) {
+        response.question.correctAnswer = q.correctAnswer;
+      }
+
       response.timeLeft = timeLeft;
+
+      // Calcular ranking parcial para mostrar entre perguntas
+      const scores = [];
+      game.players.forEach(player => {
+        let score = 0;
+        let correct = 0;
+
+        Object.entries(game.answers || {}).forEach(([qIndex, questionAnswers]) => {
+          const answer = questionAnswers[player.id];
+          if (answer && answer.isCorrect) {
+            score += answer.points || 100;
+            correct++;
+          }
+        });
+
+        scores.push({
+          id: player.id,
+          name: player.name,
+          score,
+          correctAnswers: correct
+        });
+      });
+
+      scores.sort((a, b) => b.score - a.score);
+      response.ranking = scores;
     }
   }
 
-  // Se jogo terminou, incluir ranking
+  // Se jogo terminou, incluir ranking final
   if (game.status === 'finished' && game.results) {
     response.ranking = game.results;
   }

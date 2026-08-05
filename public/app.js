@@ -11,6 +11,7 @@ let pollInterval = null;
 let adminToken = null;
 let questionsList = [];
 let hasAnsweredCurrent = false;
+let lastQuestionNumber = null;
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -58,15 +59,32 @@ function handleGameUpdate(data, role) {
     // Player - Game started
     if (role === 'player' && data.status === 'playing') {
         if (data.question) {
-            // New question detected
-            if (!currentQuestion || currentQuestion.id !== data.question.id) {
+            const isNewQuestion = !currentQuestion || currentQuestion.id !== data.question.id;
+            const questionJustEnded = lastQuestionNumber && lastQuestionNumber !== data.question.questionNumber;
+
+            // Se acabou uma pergunta e começou outra, mostrar ranking intermediário
+            if (questionJustEnded && data.ranking) {
+                showInterimRanking(data.ranking, data.question);
+                lastQuestionNumber = data.question.questionNumber;
+                return;
+            }
+
+            // Nova pergunta detectada
+            if (isNewQuestion) {
                 currentQuestion = data.question;
                 hasAnsweredCurrent = false;
+                lastQuestionNumber = data.question.questionNumber;
                 showScreen('game-screen');
-                renderPlayerQuestion(data.question);
+                renderPlayerQuestion(data.question, data.timeLeft);
             }
-            // Update timer
+
+            // Atualizar timer (sempre, independente de ter respondido)
             updatePlayerTimer(data.timeLeft, data.question.time);
+
+            // Se o tempo acabou (timeLeft = 0), mostrar resposta correta
+            if (data.timeLeft === 0 && currentQuestion) {
+                showCorrectAnswer();
+            }
         }
     }
 
@@ -128,6 +146,7 @@ async function joinGame() {
 
         currentPlayer = { id: data.playerId, name, email };
         currentGame = { code: gameCode };
+        lastQuestionNumber = null;
 
         showScreen('waiting-screen');
         startPolling(gameCode, 'player');
@@ -149,7 +168,7 @@ function updateWaitingPlayers(players) {
     }
 }
 
-function renderPlayerQuestion(question) {
+function renderPlayerQuestion(question, timeLeft) {
     document.getElementById('current-q').textContent = question.questionNumber;
     document.getElementById('total-q').textContent = question.totalQuestions;
     document.getElementById('question-text').textContent = question.text;
@@ -160,17 +179,18 @@ function renderPlayerQuestion(question) {
     question.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option';
+        btn.id = `option-${idx}`;
         btn.innerHTML = `<span class="option-letter">${LETTERS[idx]}</span><span>${opt}</span>`;
         btn.onclick = function() { submitAnswer(idx); };
         grid.appendChild(btn);
     });
 
-    // Reset timer
-    document.getElementById('timer-bar').style.width = '100%';
+    // NÃO resetar o timer aqui - deixar o polling atualizar
+    updatePlayerTimer(timeLeft || question.time, question.time);
 }
 
 function updatePlayerTimer(timeLeft, maxTime) {
-    const t = timeLeft || 30;
+    const t = timeLeft || 0;
     const max = maxTime || 30;
     const el = document.getElementById('timer-text');
     const bar = document.getElementById('timer-bar');
@@ -178,14 +198,28 @@ function updatePlayerTimer(timeLeft, maxTime) {
     if (bar) bar.style.width = ((t / max) * 100) + '%';
 }
 
+function showCorrectAnswer() {
+    if (!currentQuestion) return;
+
+    const buttons = document.querySelectorAll('.option');
+    buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === currentQuestion.correctAnswer) {
+            btn.classList.add('correct');
+        }
+    });
+}
+
 async function submitAnswer(answerIndex) {
     if (!currentGame || !currentQuestion || hasAnsweredCurrent) return;
 
     hasAnsweredCurrent = true;
 
-    // Disable all buttons
-    const buttons = document.querySelectorAll('.option');
-    buttons.forEach(btn => btn.disabled = true);
+    // Desabilitar o botão clicado e mudar aparência
+    const clickedBtn = document.getElementById(`option-${answerIndex}`);
+    if (clickedBtn) {
+        clickedBtn.classList.add('selected');
+    }
 
     const answerTime = Date.now() - (currentQuestion.startTime || Date.now());
 
@@ -206,21 +240,58 @@ async function submitAnswer(answerIndex) {
 
         const data = await response.json();
 
-        // Show visual feedback
-        buttons.forEach((btn, idx) => {
-            if (idx === currentQuestion.correctAnswer) {
-                btn.classList.add('correct');
-            } else if (idx === answerIndex && !data.isCorrect) {
-                btn.classList.add('wrong');
+        // Feedback visual apenas no botão clicado
+        if (clickedBtn) {
+            if (data.isCorrect) {
+                clickedBtn.classList.add('correct');
+            } else {
+                clickedBtn.classList.add('wrong');
             }
-            if (idx === answerIndex) {
-                btn.classList.add('selected');
-            }
-        });
+        }
 
     } catch (err) {
         console.error('Erro ao responder:', err);
     }
+}
+
+// Mostrar ranking intermediário entre perguntas
+function showInterimRanking(ranking, nextQuestion) {
+    const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
+    const myScore = ranking.find(p => p.id === currentPlayer?.id)?.score || 0;
+
+    // Criar HTML para ranking parcial
+    const top5 = ranking.slice(0, 5);
+
+    // Substituir o conteúdo da tela de game-screen temporariamente
+    const container = document.querySelector('.question-container');
+    if (!container) return;
+
+    // Salvar conteúdo original
+    if (!container.dataset.original) {
+        container.dataset.original = container.innerHTML;
+    }
+
+    container.innerHTML = `
+        <div style="text-align:center; padding:40px; background:#fff; border-radius:20px; border:4px solid #F5C500;">
+            <h2 style="color:#000; margin-bottom:20px;">🏆 Ranking Parcial</h2>
+            <div style="font-size:1.5rem; color:#F5C500; margin-bottom:30px;">
+                Sua posição: <strong>#${myRank}</strong> | Pontos: <strong>${myScore}</strong>
+            </div>
+            <div style="margin-bottom:30px;">
+                ${top5.map((p, i) => `
+                    <div style="display:flex; justify-content:space-between; padding:15px; margin:10px 0;
+                                background:${i < 3 ? (i===0?'#FFD700':i===1?'#C0C0C0':'#CD7F32') : '#f5f5f5'};
+                                border-radius:10px; border:2px solid #000;">
+                        <span style="font-weight:800; color:#000;">#${i+1} ${p.name}</span>
+                        <span style="font-weight:800; color:#000;">${p.score} pts</span>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="color:#666; font-size:1.2rem;">
+                Próxima pergunta em breve...
+            </div>
+        </div>
+    `;
 }
 
 function showPlayerFinalRanking(ranking) {
