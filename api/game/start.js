@@ -1,5 +1,6 @@
 // Iniciar jogo via HTTP - Com persistência no Supabase
 const { getGame, updateGame } = require('../../lib/game-store');
+const { isSupabaseEnabled } = require('../../lib/supabase');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'quiz99_secret_key_2024';
@@ -18,6 +19,7 @@ module.exports = async (req, res) => {
   }
 
   console.log('[start] Request received:', req.body);
+  console.log('[start] Supabase enabled:', isSupabaseEnabled);
 
   // Verificar token
   const authHeader = req.headers.authorization;
