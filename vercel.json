@@ -1,6 +1,7 @@
 {
   "version": 2,
   "routes": [
+    { "src": "/api/coupons/(.*)", "dest": "/api/coupons/$1.js" },
     { "src": "/api/(.*)", "dest": "/api/$1.js" }
   ],
   "functions": {

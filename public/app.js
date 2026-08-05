@@ -249,8 +249,8 @@ async function submitAnswer(answerIndex) {
     }
 }
 
-// URL do Google Apps Script
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBMFJy8Jf6xvgLcuLosxS2mHuCh8Pg2qkkG6g8R5W-MMoZlcMHvMwOKptlp5B9iSFR/exec';
+// APIs de cupons (Supabase)
+const COUPONS_API = '/api/coupons';
 
 // Mostrar ranking intermediário entre perguntas
 function showInterimRanking(ranking) {
@@ -272,15 +272,12 @@ function showInterimRanking(ranking) {
     showScreen('interim-ranking-screen');
 }
 
-// Buscar cupom do jogador no Google Sheets
-async function getPlayerCouponFromSheets() {
+// Buscar cupom do jogador no Supabase
+async function getPlayerCoupon() {
     if (!currentPlayer || !currentGame) return null;
 
     try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getPlayerCoupon&playerEmail=${encodeURIComponent(currentPlayer.email)}&gameCode=${encodeURIComponent(currentGame.code)}`, {
-            method: 'GET',
-            mode: 'cors'
-        });
+        const response = await fetch(`${COUPONS_API}/get?playerEmail=${encodeURIComponent(currentPlayer.email)}&gameCode=${encodeURIComponent(currentGame.code)}`);
 
         const data = await response.json();
         if (data.success) {
@@ -292,17 +289,15 @@ async function getPlayerCouponFromSheets() {
     return null;
 }
 
-// Atribuir cupom ao jogador no Google Sheets
+// Atribuir cupom ao jogador no Supabase
 async function assignCouponToPlayer(playerPosition, playerScore) {
     if (!currentPlayer || !currentGame) return null;
 
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        const response = await fetch(`${COUPONS_API}/assign`, {
             method: 'POST',
-            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'assignCoupon',
                 playerEmail: currentPlayer.email,
                 playerName: currentPlayer.name,
                 gameCode: currentGame.code,
@@ -347,7 +342,7 @@ async function showPlayerFinalRanking(ranking) {
     }).join('');
 
     // Buscar ou atribuir cupom
-    let coupon = await getPlayerCouponFromSheets();
+    let coupon = await getPlayerCoupon();
     if (!coupon) {
         coupon = await assignCouponToPlayer(myRank, myScore);
     }
