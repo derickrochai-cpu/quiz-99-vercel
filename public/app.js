@@ -11,7 +11,7 @@ let pollInterval = null;
 let adminToken = null;
 let questionsList = [];
 let hasAnsweredCurrent = false;
-let lastQuestionNumber = null;
+let showingRanking = false; // Flag para controlar exibição do ranking
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -60,24 +60,33 @@ function handleGameUpdate(data, role) {
     if (role === 'player' && data.status === 'playing') {
         if (data.question) {
             const isNewQuestion = !currentQuestion || currentQuestion.id !== data.question.id;
+            const isSameQuestion = currentQuestion && currentQuestion.id === data.question.id;
+            const questionJustEnded = data.timeLeft === 0 && data.showRanking;
 
-            // NOVA PERGUNTA: Sempre ir para tela de jogo quando detectar pergunta diferente
-            if (isNewQuestion) {
-                currentQuestion = data.question;
-                hasAnsweredCurrent = false;
-                lastQuestionNumber = data.question.questionNumber;
-                showScreen('game-screen');
-                renderPlayerQuestion(data.question, data.timeLeft);
+            // Se a pergunta acabou (timeLeft = 0), mostrar ranking
+            if (questionJustEnded && !showingRanking && data.ranking) {
+                showingRanking = true;
+                showInterimRanking(data.ranking);
+                return; // Não processar mais nada - esperar próxima pergunta
             }
 
-            // Atualizar timer e estado da pergunta atual
+            // Se temos uma nova pergunta (número diferente ou ID diferente)
+            if (isNewQuestion) {
+                showingRanking = false; // Resetar flag
+                currentQuestion = data.question;
+                hasAnsweredCurrent = false;
+                showScreen('game-screen');
+                renderPlayerQuestion(data.question);
+            }
+
+            // Se estiver na tela de jogo, atualizar timer
             const isOnGameScreen = document.getElementById('game-screen')?.classList.contains('active');
-            if (isOnGameScreen) {
+            if (isOnGameScreen && isSameQuestion) {
                 updatePlayerTimer(data.timeLeft, data.question.time);
 
-                // Se o tempo acabou (timeLeft = 0), mostrar resposta correta
-                if (data.timeLeft === 0) {
-                    showCorrectAnswer();
+                // Se o tempo acabou (timeLeft = 0) e temos resposta correta, mostrar
+                if (data.timeLeft === 0 && data.question.correctAnswer !== undefined) {
+                    showCorrectAnswer(data.question.correctAnswer);
                 }
             }
         }
@@ -141,7 +150,6 @@ async function joinGame() {
 
         currentPlayer = { id: data.playerId, name, email };
         currentGame = { code: gameCode };
-        lastQuestionNumber = null;
 
         showScreen('waiting-screen');
         startPolling(gameCode, 'player');
@@ -163,7 +171,7 @@ function updateWaitingPlayers(players) {
     }
 }
 
-function renderPlayerQuestion(question, timeLeft) {
+function renderPlayerQuestion(question) {
     document.getElementById('current-q').textContent = question.questionNumber;
     document.getElementById('total-q').textContent = question.totalQuestions;
     document.getElementById('question-text').textContent = question.text;
@@ -180,8 +188,8 @@ function renderPlayerQuestion(question, timeLeft) {
         grid.appendChild(btn);
     });
 
-    // NÃO resetar o timer aqui - deixar o polling atualizar
-    updatePlayerTimer(timeLeft || question.time, question.time);
+    // Timer começa do máximo
+    document.getElementById('timer-bar').style.width = '100%';
 }
 
 function updatePlayerTimer(timeLeft, maxTime) {
@@ -193,13 +201,11 @@ function updatePlayerTimer(timeLeft, maxTime) {
     if (bar) bar.style.width = ((t / max) * 100) + '%';
 }
 
-function showCorrectAnswer() {
-    if (!currentQuestion) return;
-
+function showCorrectAnswer(correctIndex) {
     const buttons = document.querySelectorAll('.option');
     buttons.forEach((btn, idx) => {
         btn.disabled = true;
-        if (idx === currentQuestion.correctAnswer) {
+        if (idx === correctIndex) {
             btn.classList.add('correct');
         }
     });
@@ -210,13 +216,18 @@ async function submitAnswer(answerIndex) {
 
     hasAnsweredCurrent = true;
 
-    // Desabilitar o botão clicado e mudar aparência
+    // Desabilitar TODOS os botões para evitar múltiplas respostas
+    const buttons = document.querySelectorAll('.option');
+    buttons.forEach(btn => btn.disabled = true);
+
+    // Marcar o botão clicado como selecionado (mas não mostra se está correto ainda)
     const clickedBtn = document.getElementById(`option-${answerIndex}`);
     if (clickedBtn) {
         clickedBtn.classList.add('selected');
     }
 
     const answerTime = Date.now() - (currentQuestion.startTime || Date.now());
+    currentQuestion.startTime = currentQuestion.startTime || Date.now();
 
     try {
         const response = await fetch('/api/game/answer', {
@@ -235,22 +246,14 @@ async function submitAnswer(answerIndex) {
 
         const data = await response.json();
 
-        // Feedback visual apenas no botão clicado
-        if (clickedBtn) {
-            if (data.isCorrect) {
-                clickedBtn.classList.add('correct');
-            } else {
-                clickedBtn.classList.add('wrong');
-            }
-        }
+        // NÃO mostrar feedback visual de correto/errado ainda
+        // Só quando o tempo acabar
+        console.log('Resposta enviada:', data);
 
     } catch (err) {
         console.error('Erro ao responder:', err);
     }
 }
-
-// APIs de cupons (Supabase)
-const COUPONS_API = '/api/coupons';
 
 // Mostrar ranking intermediário entre perguntas
 function showInterimRanking(ranking) {
@@ -271,6 +274,9 @@ function showInterimRanking(ranking) {
 
     showScreen('interim-ranking-screen');
 }
+
+// APIs de cupons (Supabase)
+const COUPONS_API = '/api/coupons';
 
 // Buscar cupom do jogador no Supabase
 async function getPlayerCoupon() {

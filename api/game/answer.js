@@ -1,4 +1,4 @@
-// Enviar resposta via HTTP - Agora com persistência no Supabase
+// Enviar resposta via HTTP - NÃO atualiza o timer da pergunta
 const { getGame, updateGame } = require('../../lib/game-store');
 
 module.exports = async (req, res) => {
@@ -31,11 +31,20 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Invalid question' });
   }
 
+  // Verificar se já respondeu
+  const existingAnswer = game.answers?.[game.currentQuestion]?.[playerId];
+  if (existingAnswer) {
+    return res.status(400).json({ error: 'Already answered' });
+  }
+
   const isCorrect = answer === currentQ.correctAnswer;
+
+  // Cálculo de pontos: 100 base + bônus de velocidade (até 100)
+  // Quanto mais rápido, mais pontos
   const timeBonus = isCorrect ? Math.round((1 - Math.min(answerTime, currentQ.time * 1000) / (currentQ.time * 1000)) * 100) : 0;
   const points = isCorrect ? 100 + timeBonus : 0;
 
-  // Salvar resposta
+  // Salvar resposta - NÃO atualiza o updatedAt da pergunta
   const answers = { ...game.answers };
   if (!answers[game.currentQuestion]) {
     answers[game.currentQuestion] = {};
@@ -47,11 +56,14 @@ module.exports = async (req, res) => {
     time: answerTime
   };
 
+  // Atualizar SÓ as respostas, não o timestamp da pergunta
   await updateGame(gameCode, { answers });
 
   res.json({
     success: true,
     isCorrect,
-    points
+    points,
+    // Não envia a resposta correta - só mostra quando o tempo acabar
+    message: 'Answer recorded'
   });
 };

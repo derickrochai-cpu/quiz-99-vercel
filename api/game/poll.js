@@ -28,7 +28,8 @@ module.exports = async (req, res) => {
   if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
     const currentQ = game.questions[game.currentQuestion];
     if (currentQ) {
-      const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
+      // Usar question_started_at se existir, senão usar updatedAt (para compatibilidade)
+      const questionStartTime = new Date(game.questionStartedAt || game.updatedAt || game.startedAt).getTime();
       const now = Date.now();
       const elapsed = Math.floor((now - questionStartTime) / 1000);
       const timeLeft = Math.max(0, currentQ.time - elapsed);
@@ -72,10 +73,11 @@ module.exports = async (req, res) => {
           // Recarregar o jogo atualizado
           game = await getGame(gameCode);
         } else {
-          // PRÓXIMA PERGUNTA
+          // PRÓXIMA PERGUNTA - Definir novo question_started_at
           await updateGame(gameCode, {
             currentQuestion: nextQuestion,
-            timeLeft: game.questions[nextQuestion].time
+            timeLeft: game.questions[nextQuestion].time,
+            questionStartedAt: new Date().toISOString()
           });
 
           // Recarregar o jogo atualizado
@@ -98,7 +100,8 @@ module.exports = async (req, res) => {
   if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
     const q = game.questions[game.currentQuestion];
     if (q) {
-      const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
+      // Usar questionStartedAt para calcular tempo
+      const questionStartTime = new Date(game.questionStartedAt || game.updatedAt || game.startedAt).getTime();
       const now = Date.now();
       const elapsed = Math.floor((now - questionStartTime) / 1000);
       const timeLeft = Math.max(0, q.time - elapsed);
@@ -115,11 +118,12 @@ module.exports = async (req, res) => {
       // Só mostrar a resposta correta quando o tempo acabar (timeLeft = 0)
       if (timeLeft === 0) {
         response.question.correctAnswer = q.correctAnswer;
+        response.questionEnded = true; // Flag para indicar que a pergunta acabou
       }
 
       response.timeLeft = timeLeft;
 
-      // Calcular ranking parcial para mostrar entre perguntas
+      // Calcular ranking parcial
       const scores = [];
       game.players.forEach(player => {
         let score = 0;
@@ -143,6 +147,11 @@ module.exports = async (req, res) => {
 
       scores.sort((a, b) => b.score - a.score);
       response.ranking = scores;
+
+      // Se a pergunta acabou (timeLeft = 0), indicar que é hora de mostrar ranking
+      if (timeLeft === 0) {
+        response.showRanking = true;
+      }
     }
   }
 
