@@ -249,6 +249,9 @@ async function submitAnswer(answerIndex) {
     }
 }
 
+// URL do Google Apps Script
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBMFJy8Jf6xvgLcuLosxS2mHuCh8Pg2qkkG6g8R5W-MMoZlcMHvMwOKptlp5B9iSFR/exec';
+
 // Mostrar ranking intermediário entre perguntas
 function showInterimRanking(ranking) {
     const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
@@ -269,8 +272,60 @@ function showInterimRanking(ranking) {
     showScreen('interim-ranking-screen');
 }
 
-function showPlayerFinalRanking(ranking) {
+// Buscar cupom do jogador no Google Sheets
+async function getPlayerCouponFromSheets() {
+    if (!currentPlayer || !currentGame) return null;
+
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getPlayerCoupon&playerEmail=${encodeURIComponent(currentPlayer.email)}&gameCode=${encodeURIComponent(currentGame.code)}`, {
+            method: 'GET',
+            mode: 'cors'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            return data.coupon;
+        }
+    } catch (err) {
+        console.log('Erro ao buscar cupom:', err);
+    }
+    return null;
+}
+
+// Atribuir cupom ao jogador no Google Sheets
+async function assignCouponToPlayer(playerPosition, playerScore) {
+    if (!currentPlayer || !currentGame) return null;
+
+    try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'assignCoupon',
+                playerEmail: currentPlayer.email,
+                playerName: currentPlayer.name,
+                gameCode: currentGame.code,
+                position: playerPosition,
+                score: playerScore
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            return data.coupon;
+        }
+    } catch (err) {
+        console.log('Erro ao atribuir cupom:', err);
+    }
+    return null;
+}
+
+async function showPlayerFinalRanking(ranking) {
     showScreen('podium-screen');
+
+    const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
+    const myScore = ranking.find(p => p.id === currentPlayer?.id)?.score || 0;
 
     const podium = document.getElementById('podium-container');
     const top3 = ranking.slice(0, 3);
@@ -291,7 +346,25 @@ function showPlayerFinalRanking(ranking) {
             </div>`;
     }).join('');
 
-    document.getElementById('coupon-section').style.display = 'block';
+    // Buscar ou atribuir cupom
+    let coupon = await getPlayerCouponFromSheets();
+    if (!coupon) {
+        coupon = await assignCouponToPlayer(myRank, myScore);
+    }
+
+    // Mostrar cupom
+    if (coupon) {
+        document.getElementById('coupon-discount').textContent = coupon.discount;
+        document.getElementById('coupon-code').textContent = coupon.code;
+        document.getElementById('coupon-section').style.display = 'block';
+    } else {
+        document.getElementById('coupon-section').innerHTML = `
+            <div class="coupon-title">🎉 Parabéns!</div>
+            <p style="color:#000; font-size:1.2rem;">Você terminou na posição #${myRank}!</p>
+            <p style="color:#666;">Infelizmente não há cupons disponíveis no momento.</p>
+        `;
+        document.getElementById('coupon-section').style.display = 'block';
+    }
 }
 
 // ============================================
