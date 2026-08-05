@@ -28,8 +28,8 @@ module.exports = async (req, res) => {
   if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
     const currentQ = game.questions[game.currentQuestion];
     if (currentQ) {
-      // Usar question_started_at se existir, senão usar updatedAt (para compatibilidade)
-      const questionStartTime = new Date(game.questionStartedAt || game.updatedAt || game.startedAt).getTime();
+      // Usar updatedAt como referência do início da pergunta atual
+      const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
       const now = Date.now();
       const elapsed = Math.floor((now - questionStartTime) / 1000);
       const timeLeft = Math.max(0, currentQ.time - elapsed);
