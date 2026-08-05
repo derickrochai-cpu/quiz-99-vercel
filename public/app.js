@@ -11,6 +11,7 @@ let pollInterval = null;
 let adminToken = null;
 let questionsList = [];
 let hasAnsweredCurrent = false;
+let playerAnswer = null; // Guarda a resposta do jogador
 let showingRanking = false; // Flag para controlar exibição do ranking
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -62,14 +63,6 @@ function handleGameUpdate(data, role) {
         if (data.question) {
             const isNewQuestion = !currentQuestion || currentQuestion.id !== data.question.id;
             const isSameQuestion = currentQuestion && currentQuestion.id === data.question.id;
-            const questionJustEnded = data.timeLeft === 0 && data.showRanking;
-
-            // Se a pergunta acabou (timeLeft = 0), mostrar ranking
-            if (questionJustEnded && !showingRanking && data.ranking) {
-                showingRanking = true;
-                showInterimRanking(data.ranking);
-                return; // Não processar mais nada - esperar próxima pergunta
-            }
 
             // Se temos uma nova pergunta (número diferente ou ID diferente)
             if (isNewQuestion) {
@@ -85,9 +78,18 @@ function handleGameUpdate(data, role) {
             if (isOnGameScreen && isSameQuestion) {
                 updatePlayerTimer(data.timeLeft, data.question.time);
 
-                // Se o tempo acabou (timeLeft = 0) e temos resposta correta, mostrar
-                if (data.timeLeft === 0 && data.question.correctAnswer !== undefined) {
+                // Quando o tempo acabou (timeLeft = 0)
+                if (data.timeLeft === 0 && data.question.correctAnswer !== undefined && !showingRanking) {
+                    // PASSO 1: Mostrar resposta correta/errada
                     showCorrectAnswer(data.question.correctAnswer);
+
+                    // PASSO 2: Esperar 3 segundos e depois mostrar ranking
+                    if (data.ranking) {
+                        showingRanking = true;
+                        setTimeout(() => {
+                            showInterimRanking(data.ranking);
+                        }, 3000); // 3 segundos para ver o resultado
+                    }
                 }
             }
         }
@@ -207,25 +209,40 @@ function updatePlayerTimer(timeLeft, maxTime) {
 }
 
 function showCorrectAnswer(correctIndex) {
+    console.log('[showCorrectAnswer] Correct:', correctIndex, 'Player:', playerAnswer);
+
     const buttons = document.querySelectorAll('.option');
     buttons.forEach((btn, idx) => {
         btn.disabled = true;
+
+        // Remove classe selecionada anterior
+        btn.classList.remove('selected');
+
         if (idx === correctIndex) {
+            // ✅ Alternativa CORRETA em VERDE
             btn.classList.add('correct');
+        } else if (idx === playerAnswer && playerAnswer !== correctIndex) {
+            // ❌ Alternativa ERRADA do jogador em VERMELHO
+            btn.classList.add('wrong');
         }
     });
+
+    // Reset para próxima pergunta
+    playerAnswer = null;
 }
 
 async function submitAnswer(answerIndex) {
     if (!currentGame || !currentQuestion || hasAnsweredCurrent) return;
 
     hasAnsweredCurrent = true;
+    playerAnswer = answerIndex; // Guarda a resposta do jogador
+    console.log('[submitAnswer] Player answer stored:', answerIndex);
 
     // Desabilitar TODOS os botões para evitar múltiplas respostas
     const buttons = document.querySelectorAll('.option');
     buttons.forEach(btn => btn.disabled = true);
 
-    // Marcar o botão clicado como selecionado (mas não mostra se está correto ainda)
+    // Marcar o botão clicado como selecionado (visível mas neutro)
     const clickedBtn = document.getElementById(`option-${answerIndex}`);
     if (clickedBtn) {
         clickedBtn.classList.add('selected');
@@ -250,13 +267,13 @@ async function submitAnswer(answerIndex) {
         });
 
         const data = await response.json();
+        console.log('[submitAnswer] Response from server:', data);
 
         // NÃO mostrar feedback visual de correto/errado ainda
-        // Só quando o tempo acabar
-        console.log('Resposta enviada:', data);
+        // Só quando o tempo acabar (o polling vai chamar showCorrectAnswer)
 
     } catch (err) {
-        console.error('Erro ao responder:', err);
+        console.error('[submitAnswer] Error:', err);
     }
 }
 
