@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz 99 - Challenge</title>
+    <title>Quiz 99 para Empresas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -1851,10 +1851,10 @@
     <!-- HOME SCREEN -->
     <!-- ============================================ -->
     <div id="home-screen" class="screen active">
-        <div class="logo">QUIZ<span>99</span></div>
-        <div class="tagline">🏁 Race Your Knowledge!</div>
-        <button class="btn" onclick="showScreen('player-login')">🎮 Join Game</button>
-        <button class="btn btn-admin" onclick="showScreen('admin-login')">👤 Admin Area</button>
+        <div class="logo">QUIZ<span>99</span> para Empresas</div>
+        <div class="tagline">🏁 Teste seus conhecimentos!</div>
+        <button class="btn" onclick="showScreen('player-login')">🎮 Entrar no Jogo</button>
+        <button class="btn btn-admin" onclick="showScreen('admin-login')">👤 Área do Admin</button>
     </div>
 
     <!-- ============================================ -->
@@ -1862,21 +1862,21 @@
     <!-- ============================================ -->
     <div id="player-login" class="screen">
         <div class="form-container">
-            <div class="form-title">🏁 Join the Race</div>
+            <div class="form-title">🏁 Entrar na Corrida</div>
             <div class="input-group">
-                <label>Your Name</label>
-                <input type="text" id="player-name" placeholder="Enter your name">
+                <label>Seu Nome</label>
+                <input type="text" id="player-name" placeholder="Digite seu nome">
             </div>
             <div class="input-group">
                 <label>Email</label>
-                <input type="email" id="player-email" placeholder="your@email.com">
+                <input type="email" id="player-email" placeholder="seu@email.com">
             </div>
             <div class="input-group">
-                <label>Game Code</label>
+                <label>Código do Jogo</label>
                 <input type="text" id="game-code" placeholder="Digite o código do jogo">
             </div>
-            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">🚀 Start Racing</button>
-            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Back</button>
+            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">🚀 Começar</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Voltar</button>
         </div>
     </div>
 
@@ -1885,17 +1885,17 @@
     <!-- ============================================ -->
     <div id="admin-login" class="screen">
         <div class="form-container">
-            <div class="form-title">👑 Admin Login</div>
+            <div class="form-title">👑 Login do Admin</div>
             <div class="input-group">
                 <label>Email</label>
                 <input type="email" id="admin-email" placeholder="admin@99app.com">
             </div>
             <div class="input-group">
-                <label>Password</label>
+                <label>Senha</label>
                 <input type="password" id="admin-password" placeholder="••••••">
             </div>
-            <button class="btn" onclick="adminLogin()" style="width:100%; margin-top:20px;">🔑 Login</button>
-            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Back</button>
+            <button class="btn" onclick="adminLogin()" style="width:100%; margin-top:20px;">🔑 Entrar</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Voltar</button>
         </div>
     </div>
 
@@ -1908,7 +1908,7 @@
                 <div class="waiting-pulse">
                     <div class="waiting-animation">🏁</div>
                 </div>
-                <div class="waiting-text waiting-pulse" style="font-size: 2rem; margin: 20px 0;">Waiting for the race to start...</div>
+                <div class="waiting-text waiting-pulse" style="font-size: 2rem; margin: 20px 0;">Aguardando o início da corrida...</div>
 
                 <!-- Grade de largada animada -->
                 <div class="starting-grid" id="starting-grid">
@@ -1926,7 +1926,7 @@
                     <div class="light green" id="light-green"></div>
                 </div>
 
-                <div class="waiting-text" id="waiting-players">Players: 0</div>
+                <div class="waiting-text" id="waiting-players">Jogadores: 0</div>
                 <div class="players-list" id="players-avatars"></div>
 
                 <!-- Pit crew -->
@@ -1960,7 +1960,7 @@
     <!-- ============================================ -->
     <div id="interim-ranking-screen" class="screen">
         <div class="ranking-container">
-            <div class="ranking-title">🏆 Race Standings</div>
+            <div class="ranking-title">🏆 Classificação</div>
 
             <!-- Resposta da pergunta anterior -->
             <div id="interim-answer-section" style="background: var(--branco); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 3px solid var(--amarelo-99);">
@@ -2006,7 +2006,7 @@
     <!-- ============================================ -->
     <div id="ranking-screen" class="screen">
         <div class="ranking-container">
-            <div class="ranking-title">🏆 Race Standings</div>
+            <div class="ranking-title">🏆 Classificação</div>
             <div class="ranking-list" id="ranking-list"></div>
         </div>
     </div>
@@ -2015,7 +2015,7 @@
     <!-- PODIUM SCREEN (FINAL) -->
     <!-- ============================================ -->
     <div id="podium-screen" class="screen">
-        <div class="ranking-title">🏁 Final Results!</div>
+        <div class="ranking-title">🏁 Resultados Finais!</div>
         <div class="podium-container" id="podium-container"></div>
         <div class="coupon-container" id="coupon-section" style="display:none;">
             <div class="coupon-title">🎉 You Won a Coupon!</div>
@@ -2031,8 +2031,8 @@
     <div id="admin-dashboard" class="screen">
         <div class="admin-panel">
             <div class="admin-header">
-                <div class="admin-title">👑 Create New Quiz</div>
-                <button class="btn btn-secondary btn-small" onclick="logoutAdmin()">Logout</button>
+                <div class="admin-title">👑 Criar Novo Quiz</div>
+                <button class="btn btn-secondary btn-small" onclick="logoutAdmin()">Sair</button>
             </div>
 
             <!-- Quiz Title -->
@@ -2045,42 +2045,42 @@
 
             <!-- Questions List -->
             <div class="question-builder-container">
-                <h2 style="color:#000; margin-bottom:20px;">❓ Questions</h2>
+                <h2 style="color:#000; margin-bottom:20px;">❓ Perguntas</h2>
                 <div id="questions-list" class="question-list">
                     <div class="empty-questions">
                         <div class="empty-questions-icon">📝</div>
-                        <p>No questions yet. Add your first question below!</p>
+                        <p>Nenhuma pergunta ainda. Adicione sua primeira pergunta abaixo!</p>
                     </div>
                 </div>
             </div>
 
             <!-- Add Question Form -->
             <div class="question-builder-container" id="add-question-form">
-                <h3 style="color:#000; margin-bottom:20px;">➕ Add New Question</h3>
+                <h3 style="color:#000; margin-bottom:20px;">➕ Adicionar Nova Pergunta</h3>
 
                 <div class="input-group">
-                    <label>Question Text</label>
-                    <textarea id="new-question-text" placeholder="Enter your question here..."></textarea>
+                    <label>Texto da Pergunta</label>
+                    <textarea id="new-question-text" placeholder="Digite sua pergunta aqui..."></textarea>
                 </div>
 
-                <label style="color:#000; font-weight:700; margin-bottom:10px; display:block;">Options (check the correct answer)</label>
+                <label style="color:#000; font-weight:700; margin-bottom:10px; display:block;">Opções (marque a resposta correta)</label>
                 <div class="options-inputs">
                     <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-0" placeholder="Option A">
+                        <input type="text" id="option-0" placeholder="Opção A">
                     </div>
                     <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-1" placeholder="Option B">
+                        <input type="text" id="option-1" placeholder="Opção B">
                     </div>
                     <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-2" placeholder="Option C">
+                        <input type="text" id="option-2" placeholder="Opção C">
                     </div>
                     <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-3" placeholder="Option D">
+                        <input type="text" id="option-3" placeholder="Opção D">
                     </div>
                 </div>
 
                 <div class="correct-answer-selector">
-                    <label>Correct Answer:</label>
+                    <label>Resposta Correta:</label>
                     <label class="correct-option">
                         <input type="radio" name="correct-answer" value="0" checked>
                         <span>A</span>
@@ -2100,20 +2100,20 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Time per Question</label>
+                    <label>Tempo por Pergunta</label>
                     <div class="time-selector">
                         <input type="range" id="question-time" min="10" max="60" value="30" oninput="document.getElementById('time-display').textContent = this.value + 's';">
                         <span class="time-value" id="time-display">30s</span>
                     </div>
                 </div>
 
-                <button class="btn" onclick="addQuestion()">➕ Add Question</button>
+                <button class="btn" onclick="addQuestion()">➕ Adicionar Pergunta</button>
             </div>
 
             <!-- Create Game Button -->
             <div class="question-builder-container" style="text-align:center;">
-                <button class="btn btn-success" id="create-game-btn" onclick="createGame()" disabled style="font-size:1.5rem; padding:25px 50px;">🚀 Create Game</button>
-                <p id="create-game-error" style="color:#dc3545; margin-top:15px; display:none;">⚠️ Add at least 1 question before creating the game!</p>
+                <button class="btn btn-success" id="create-game-btn" onclick="createGame()" disabled style="font-size:1.5rem; padding:25px 50px;">🚀 Criar Jogo</button>
+                <p id="create-game-error" style="color:#dc3545; margin-top:15px; display:none;">⚠️ Adicione pelo menos 1 pergunta antes de criar o jogo!</p>
             </div>
         </div>
     </div>
@@ -2125,19 +2125,19 @@
         <div class="admin-panel">
             <div class="admin-game-header">
                 <div>
-                    <h2>🎮 Game Created!</h2>
+                    <h2>🎮 Jogo Criado!</h2>
                     <div class="game-stats">
                         <div class="stat-item">
-                            <span class="stat-label">Game Code</span>
+                            <span class="stat-label">Código do Jogo</span>
                             <span class="stat-value" id="admin-game-code" style="font-size:2rem; color:var(--amarelo-99);">---</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Players</span>
+                            <span class="stat-label">Jogadores</span>
                             <span class="stat-value" id="admin-player-count">0</span>
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-success" onclick="startGame()">🏁 START RACE</button>
+                <button class="btn btn-success" onclick="startGame()">🏁 INICIAR CORRIDA</button>
             </div>
 
             <!-- Pista de largada para admin -->
@@ -2169,7 +2169,7 @@
             </div>
 
             <div class="form-container">
-                <h3 style="color:#000; margin-bottom:20px;">👥 Connected Players</h3>
+                <h3 style="color:#000; margin-bottom:20px;">👥 Jogadores Conectados</h3>
                 <div id="admin-waiting-players" class="players-list" style="justify-content:flex-start;"></div>
                 <p id="no-players-msg" style="color:#666; text-align:center; padding:40px;">Waiting for players to join...</p>
             </div>
