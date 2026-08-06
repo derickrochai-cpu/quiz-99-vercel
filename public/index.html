@@ -47,20 +47,6 @@
             z-index: 1000;
         }
 
-        /* Padrão sutil de fundo */
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image:
-                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0, 79, 148, 0.03) 35px, rgba(0, 79, 148, 0.03) 70px);
-            pointer-events: none;
-            z-index: -1;
-        }
-
         /* Fundo limpo off-white */
         .bg-animation {
             position: fixed;
@@ -158,6 +144,36 @@
 
         .btn-admin:hover {
             box-shadow: 0 12px 0 var(--azul-medio), 0 20px 30px rgba(0, 79, 148, 0.4);
+        }
+
+        /* Ícones corporativos 99 B2B */
+        .icon-99 {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-medio) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(0, 79, 148, 0.3);
+        }
+
+        .icon-99 svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--branco);
+        }
+
+        .icon-small {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+        }
+
+        .icon-small svg {
+            width: 25px;
+            height: 25px;
         }
 
         /* Cards estilo template 99 */
@@ -1942,7 +1958,13 @@
                 </div>
             </div>
             <div class="logo-99-tagline">para Empresas</div>
-            <div style="font-size: 1.8rem; font-weight: 800; color: var(--azul-principal); margin: 20px 0 10px;">Quiz</div>
+
+            <!-- Ícone Pasta - Gestão Corporativa -->
+            <div class="icon-99">
+                <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>
+            </div>
+
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--azul-principal); margin: 10px 0 10px;">Quiz</div>
             <div style="font-size: 1rem; color: #666; margin-bottom: 40px;">Teste seus conhecimentos</div>
 
             <div class="card-grid" style="margin: 0 auto;">
@@ -1966,7 +1988,10 @@
     <div id="player-login" class="screen">
         <div class="template-card">
             <div style="text-align: center; margin-bottom: 30px;">
-                <div style="font-size: 2.5rem; margin-bottom: 10px;">🎮</div>
+                <!-- Ícone Agenda - Participação -->
+                <div class="icon-99">
+                    <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+                </div>
                 <div style="font-size: 1.5rem; font-weight: 800; color: var(--azul-principal);">Entrar no Jogo</div>
                 <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">Digite seus dados para participar</div>
             </div>
