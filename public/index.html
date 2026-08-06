@@ -61,54 +61,14 @@
             z-index: -1;
         }
 
-        /* Fundo com animação de estrada */
+        /* Fundo limpo off-white */
         .bg-animation {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             overflow: hidden;
             z-index: -1;
-            background: linear-gradient(135deg, var(--off-white) 0%, #e8e8e8 100%);
-        }
-
-        .road {
-            position: absolute;
-            bottom: 0;
-            width: 100%; height: 200px;
-            background: linear-gradient(to bottom, #333 0%, var(--preto) 100%);
-            border-top: 4px solid var(--azul-principal);
-        }
-
-        .road-lines {
-            position: absolute;
-            bottom: 100px;
-            width: 100%; height: 10px;
-            background: repeating-linear-gradient(90deg, transparent, transparent 50px, var(--azul-principal) 50px, var(--azul-principal) 100px);
-            animation: moveRoad 2s linear infinite;
-        }
-
-        @keyframes moveRoad {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100px); }
-        }
-
-        .car {
-            position: absolute;
-            bottom: 120px;
-            font-size: 3rem;
-            animation: drive 8s linear infinite;
-        }
-
-        .car:nth-child(1) { left: -100px; animation-delay: 0s; }
-        .car:nth-child(2) { left: -100px; animation-delay: 2s; }
-        .car:nth-child(3) { left: -100px; animation-delay: 4s; }
-
-        @keyframes drive {
-            0% { transform: translateX(0) scaleX(1); }
-            45% { transform: translateX(calc(100vw + 100px)) scaleX(1); }
-            50% { transform: translateX(calc(100vw + 100px)) scaleX(-1); }
-            95% { transform: translateX(0) scaleX(-1); }
-            100% { transform: translateX(0) scaleX(1); }
+            background: var(--off-white);
         }
 
         .screen {
@@ -242,12 +202,11 @@
         }
 
         .logo-99 .nine-first {
-            color: var(--amarelo-99);
-            text-shadow: 2px 2px 0 var(--azul-principal), -1px -1px 0 rgba(255,255,255,0.3);
+            color: var(--preto);
         }
 
         .logo-99 .nine-second {
-            color: var(--azul-principal);
+            color: var(--preto);
             margin-left: -5px;
         }
 
