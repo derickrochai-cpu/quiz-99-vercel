@@ -3,7 +3,7 @@ const { getGame, updateGame } = require('../../lib/game-store');
 const { isSupabaseEnabled } = require('../../lib/supabase');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'quiz99_secret_key_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'quiz99_secret_key_2024';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

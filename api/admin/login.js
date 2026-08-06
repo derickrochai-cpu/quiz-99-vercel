@@ -1,9 +1,9 @@
 // Login admin via HTTP
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'quiz99_secret_key_2024';
-const ADMIN_EMAIL = 'admin@99app.com';
-const ADMIN_PASSWORD = 'admin123';
+const JWT_SECRET = process.env.JWT_SECRET || 'quiz99_secret_key_2024';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@99app.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

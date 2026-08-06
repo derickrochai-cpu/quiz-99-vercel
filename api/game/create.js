@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const { supabase, memoryGames, isSupabaseEnabled } = require('../../lib/supabase');
 
-const JWT_SECRET = 'quiz99_secret_key_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'quiz99_secret_key_2024';
 
 function getStorage() {
   return isSupabaseEnabled ? 'supabase' : 'memory';

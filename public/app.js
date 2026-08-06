@@ -13,8 +13,14 @@ let questionsList = [];
 let hasAnsweredCurrent = false;
 let playerAnswer = null; // Guarda a resposta do jogador
 let showingRanking = false; // Flag para controlar exibição do ranking
+let hasShownStartAnimation = false; // Flag para animação de início
 
 const LETTERS = ['A', 'B', 'C', 'D'];
+
+// Emojis para animações
+const VEHICLE_EMOJIS = ['🚕', '🏍️', '🚗', '🛵', '🚙', '🏎️', '🚓', '🚑'];
+const CAR_99 = '🚕';
+const MOTO_99 = '🏍️';
 
 // ============================================
 // NAVIGATION
@@ -66,6 +72,18 @@ function handleGameUpdate(data, role) {
 
             // Se temos uma nova pergunta (número diferente ou ID diferente)
             if (isNewQuestion) {
+                // Primeira pergunta? Mostrar animação de início!
+                if (!hasShownStartAnimation && data.question.questionNumber === 1) {
+                    playStartAnimation().then(() => {
+                        showingRanking = false;
+                        currentQuestion = data.question;
+                        hasAnsweredCurrent = false;
+                        showScreen('game-screen');
+                        renderPlayerQuestion(data.question);
+                    });
+                    return; // Não continuar - animação vai chamar o resto
+                }
+
                 showingRanking = false; // Resetar flag
                 currentQuestion = data.question;
                 hasAnsweredCurrent = false;
@@ -170,11 +188,67 @@ function updateWaitingPlayers(players) {
     const count = players?.length || 0;
     const countEl = document.getElementById('waiting-players');
     const container = document.getElementById('players-avatars');
+    const gridPositions = document.querySelectorAll('.grid-position');
+
     if (countEl) countEl.textContent = `Jogadores: ${count}`;
+
+    // Atualizar avatares
     if (container) {
         container.innerHTML = (players || []).map(p =>
             `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
         ).join('');
+    }
+
+    // Animar grade de largada conforme jogadores entram
+    if (gridPositions.length > 0 && players) {
+        players.forEach((player, index) => {
+            if (index < gridPositions.length) {
+                const grid = gridPositions[index];
+                if (!grid.classList.contains('filled')) {
+                    grid.classList.add('filled');
+                    grid.querySelector('.avatar').textContent = player.name.charAt(0).toUpperCase();
+                }
+            }
+        });
+    }
+
+    // Animar semáforo baseado no número de jogadores
+    animateTrafficLight(count);
+}
+
+// Animar semáforo
+let trafficLightInterval = null;
+function animateTrafficLight(playerCount) {
+    const red = document.getElementById('light-red');
+    const yellow = document.getElementById('light-yellow');
+    const green = document.getElementById('light-green');
+
+    if (!red || !yellow || !green) return;
+
+    // Reset
+    [red, yellow, green].forEach(l => l.classList.remove('active'));
+
+    if (playerCount === 0) {
+        red.classList.add('active');
+    } else if (playerCount < 3) {
+        // Piscando amarelo - quase lá
+        yellow.classList.add('active');
+        red.classList.add('active');
+    } else {
+        // Verde! Pronto para começar
+        green.classList.add('active');
+        yellow.classList.remove('active');
+        red.classList.remove('active');
+    }
+
+    // Efeito de "calor do motor" com mais jogadores
+    if (playerCount >= 2 && !trafficLightInterval) {
+        trafficLightInterval = setInterval(() => {
+            // Piscar luzes aleatoriamente como se fosse um motor roncando
+            if (Math.random() > 0.7) {
+                yellow.classList.toggle('active');
+            }
+        }, 200);
     }
 }
 
@@ -295,7 +369,47 @@ function showInterimRanking(ranking) {
     `).join('');
 
     showScreen('interim-ranking-screen');
+
+    // Animar carros na pista baseado no ranking
+    animateRaceTrack(ranking);
 }
+
+// Animar carros na pista do ranking intermediário
+function animateRaceTrack(ranking) {
+    const maxScore = ranking[0]?.score || 1;
+    const trackLength = 80; // 80% da largura
+
+    const cars = ['mini-car-1', 'mini-car-2', 'mini-car-3'];
+    const emojis = ['🚕', '🏍️', '🚗'];
+
+    cars.forEach((carId, idx) => {
+        const car = document.getElementById(carId);
+        if (!car) return;
+
+        const player = ranking[idx];
+        if (player) {
+            const progress = (player.score / maxScore) * trackLength;
+            car.textContent = emojis[idx];
+            car.style.left = (5 + progress) + '%';
+
+            // Se for o primeiro colocado, adicionar efeito especial
+            if (idx === 0) {
+                car.style.filter = 'drop-shadow(0 0 10px #F5C500)';
+                car.style.animation = 'leader_pulse 0.5s ease-in-out infinite alternate';
+            }
+        }
+    });
+}
+
+// Adicionar keyframe para o carro líder
+const style = document.createElement('style');
+style.textContent = `
+@keyframes leader_pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+}
+`;
+document.head.appendChild(style);
 
 // APIs de cupons (Supabase)
 const COUPONS_API = '/api/coupons';
@@ -345,6 +459,10 @@ async function assignCouponToPlayer(playerPosition, playerScore) {
 }
 
 async function showPlayerFinalRanking(ranking) {
+    // PRIMEIRO: Mostrar animação elaborada do pódio
+    await playPodiumAnimation(ranking);
+
+    // DEPOIS: Mostrar tela normal do pódio com cupom
     showScreen('podium-screen');
 
     const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
@@ -546,6 +664,7 @@ function updateAdminWaitingPlayers(players) {
     const countEl = document.getElementById('admin-player-count');
     const container = document.getElementById('admin-waiting-players');
     const msg = document.getElementById('no-players-msg');
+    const gridContainer = document.getElementById('admin-starting-grid');
 
     if (countEl) countEl.textContent = count;
     if (!container) return;
@@ -560,7 +679,65 @@ function updateAdminWaitingPlayers(players) {
     container.innerHTML = players.map(p =>
         `<div class="player-avatar" title="${p.name}">${p.name.charAt(0).toUpperCase()}</div>`
     ).join('');
+
+    // Atualizar grade de largada do admin
+    if (gridContainer) {
+        const vehicles = ['🏎️', '🏍️', '🚕', '🚗', '🛵', '🚙', '🏎️', '🏍️'];
+        gridContainer.innerHTML = players.slice(0, 8).map((p, i) => `
+            <div class="admin-grid-row" style="
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                padding: 12px;
+                background: ${i === 0 ? 'rgba(245,197,0,0.2)' : 'rgba(255,255,255,0.05)'};
+                border-radius: 10px;
+                border-left: 4px solid ${i === 0 ? '#F5C500' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : '#666'};
+                animation: slide_in 0.5s ease-out ${i * 0.1}s both;
+            ">
+                <span style="font-weight: 900; color: ${i === 0 ? '#F5C500' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : '#666'}; font-size: 1.3rem;">P${i + 1}</span>
+                <span style="font-size: 2rem;">${vehicles[i]}</span>
+                <span style="color: #fff; flex: 1; font-weight: 600;">${p.name}</span>
+                <span style="color: ${i === 0 ? '#F5C500' : '#666'}; font-size: 0.9rem;">${i === 0 ? '🏆 POLE' : ''}</span>
+            </div>
+        `).join('');
+
+        // Adicionar vagas vazias se menos de 3 jogadores
+        for (let i = players.length; i < 3; i++) {
+            gridContainer.innerHTML += `
+                <div class="admin-grid-row" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    padding: 12px;
+                    background: rgba(255,255,255,0.03);
+                    border-radius: 10px;
+                    border-left: 4px dashed #444;
+                    opacity: 0.5;
+                ">
+                    <span style="font-weight: 900; color: #444; font-size: 1.3rem;">P${i + 1}</span>
+                    <span style="font-size: 2rem; filter: grayscale(1);">🏎️</span>
+                    <span style="color: #666; flex: 1; font-style: italic;">Empty slot...</span>
+                </div>
+            `;
+        }
+    }
 }
+
+// Adicionar keyframe para slide in
+const adminStyle = document.createElement('style');
+adminStyle.textContent = `
+@keyframes slide_in {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+`;
+document.head.appendChild(adminStyle);
 
 async function startGame() {
     console.log('[startGame] ===========================');
@@ -741,3 +918,320 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('adminToken');
     if (saved) adminToken = saved;
 });
+
+// ============================================
+// ANIMAÇÕES ELABORADAS
+// ============================================
+
+// Animação de contagem regressiva no início do jogo
+async function playStartAnimation() {
+    const overlay = document.getElementById('start-animation');
+    const numberEl = document.getElementById('countdown-number');
+    const textEl = document.getElementById('countdown-text');
+
+    overlay.classList.add('active');
+
+    const messages = ['READY?', 'SET...', 'GO!'];
+    const numbers = ['3', '2', '1', 'GO!'];
+
+    // Motor roncando - tocar som aqui se tiver áudio
+
+    for (let i = 0; i < 4; i++) {
+        // Reset animation
+        numberEl.style.animation = 'none';
+        numberEl.offsetHeight; // Trigger reflow
+        numberEl.style.animation = 'countdown_pop 1s ease-out';
+
+        if (i < 3) {
+            numberEl.textContent = numbers[i];
+            textEl.textContent = messages[i] || '';
+
+            // Adicionar carros acelerando
+            addRacingCars(i);
+        } else {
+            // GO!
+            numberEl.textContent = '';
+            numberEl.style.fontSize = '12rem';
+            textEl.innerHTML = '<div class="go-text">GO!</div>';
+
+            // Efeito de zoom total
+            createGoEffect();
+        }
+
+        await new Promise(r => setTimeout(r, 1000));
+    }
+
+    // Aguardar mais um pouco para o efeito do GO
+    await new Promise(r => setTimeout(r, 800));
+
+    overlay.classList.remove('active');
+    hasShownStartAnimation = true;
+}
+
+// Adicionar carros correndo na animação de início
+function addRacingCars(countdownIndex) {
+    const container = document.querySelector('.racing-cars-animation');
+
+    // Criar mais carros para cada número
+    const cars = ['🚕', '🏍️', '🚗', '🛵', '🚙'];
+    cars.forEach((car, i) => {
+        const el = document.createElement('div');
+        el.className = 'race-car';
+        el.textContent = car;
+        el.style.bottom = (10 + i * 8) + '%';
+        el.style.left = (10 + i * 15) + '%';
+        el.style.animationDuration = (0.8 + Math.random() * 0.4) + 's';
+        el.style.animationDelay = (i * 0.05) + 's';
+        el.style.fontSize = (3 + Math.random() * 2) + 'rem';
+
+        container.appendChild(el);
+
+        // Remover após animação
+        setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 1200);
+    });
+}
+
+// Efeito especial do GO!
+function createGoEffect() {
+    const container = document.getElementById('start-animation');
+
+    // Flash de luz verde
+    const flash = document.createElement('div');
+    flash.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(0,255,0,0.3) 0%, transparent 70%);
+        animation: fadeOut 0.5s ease-out forwards;
+        pointer-events: none;
+    `;
+    container.appendChild(flash);
+
+    setTimeout(() => flash.remove(), 500);
+}
+
+// ============================================
+// ANIMAÇÃO DO PÓDIO FINAL
+// ============================================
+
+async function playPodiumAnimation(ranking) {
+    const overlay = document.getElementById('podium-animation');
+    const sparklesContainer = document.getElementById('sparkles-container');
+    const podiumCarsContainer = document.getElementById('podium-cars-container');
+
+    overlay.classList.add('active');
+
+    // Criar faíscas
+    createSparkles(sparklesContainer);
+
+    // Criar carros celebrando no pódio
+    createPodiumCars(podiumCarsContainer);
+
+    // Criar confete
+    createConfetti();
+
+    // Criar fogos de artifício
+    createFireworks();
+
+    // Aguardar efeitos iniciais
+    await new Promise(r => setTimeout(r, 500));
+
+    // Renderizar o pódio com animação
+    renderAnimatedPodium(ranking);
+
+    // Continuar animações por 8 segundos
+    await new Promise(r => setTimeout(r, 8000));
+
+    // Limpar e voltar para a tela normal do pódio
+    overlay.classList.remove('active');
+    sparklesContainer.innerHTML = '';
+    podiumCarsContainer.innerHTML = '';
+    document.getElementById('confetti-container').innerHTML = '';
+}
+
+// Criar faíscas caindo
+function createSparkles(container) {
+    for (let i = 0; i < 30; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.style.left = (Math.random() * 100) + '%';
+        sparkle.style.animationDelay = (Math.random() * 3) + 's';
+        sparkle.style.animationDuration = (2 + Math.random() * 2) + 's';
+        sparkle.style.background = `hsl(${40 + Math.random() * 20}, 100%, 50%)`;
+        container.appendChild(sparkle);
+    }
+}
+
+// Carros celebrando no pódio
+function createPodiumCars(container) {
+    const vehicles = ['🚕', '🏍️', '🚗', '🛵'];
+    vehicles.forEach((v, i) => {
+        const car = document.createElement('div');
+        car.className = 'podium-car';
+        car.textContent = v;
+        car.style.left = (15 + i * 25) + '%';
+        car.style.animationDelay = (i * 0.3) + 's';
+        container.appendChild(car);
+
+        // Adicionar fumaça
+        setInterval(() => {
+            if (!car.parentNode) return;
+            const smoke = document.createElement('div');
+            smoke.className = 'smoke';
+            smoke.style.left = (parseInt(car.style.left) + 5) + '%';
+            smoke.style.bottom = '5%';
+            container.appendChild(smoke);
+            setTimeout(() => smoke.remove(), 1000);
+        }, 500 + i * 200);
+    });
+}
+
+// Criar confete
+function createConfetti() {
+    const container = document.getElementById('confetti-container');
+
+    for (let i = 0; i < 150; i++) {
+        setTimeout(() => {
+            if (!container) return;
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = (Math.random() * 100) + '%';
+            confetti.style.animationDelay = (Math.random() * 2) + 's';
+            confetti.style.animationDuration = (3 + Math.random() * 2) + 's';
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+
+            // Cores 99
+            const colors = ['#F5C500', '#FFD700', '#FFFFFF', '#FFA500', '#000000'];
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+            // Tamanhos variados
+            const size = 8 + Math.random() * 12;
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+
+            container.appendChild(confetti);
+
+            setTimeout(() => confetti.remove(), 6000);
+        }, i * 30);
+    }
+}
+
+// Criar fogos de artifício
+function createFireworks() {
+    const overlay = document.getElementById('podium-animation');
+    const colors = ['#F5C500', '#FFD700', '#FF6B6B', '#4ECDC4', '#FFFFFF'];
+
+    const launchFirework = () => {
+        const x = 10 + Math.random() * 80;
+        const y = 20 + Math.random() * 40;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        // Ponto de explosão
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                background: ${color};
+                border-radius: 50%;
+                left: ${x}%;
+                top: ${y}%;
+                pointer-events: none;
+            `;
+
+            const angle = (Math.PI * 2 * i) / 20;
+            const velocity = 100 + Math.random() * 100;
+
+            particle.animate([
+                { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                { transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, opacity: 0 }
+            ], {
+                duration: 1000,
+                easing: 'ease-out'
+            });
+
+            overlay.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }
+    };
+
+    // Lançar múltiplos fogos
+    for (let i = 0; i < 8; i++) {
+        setTimeout(launchFirework, i * 800);
+    }
+}
+
+// Renderizar pódio animado
+function renderAnimatedPodium(ranking) {
+    const overlay = document.getElementById('podium-animation');
+
+    // Criar container do pódio
+    const podiumDiv = document.createElement('div');
+    podiumDiv.className = 'podium-enhanced';
+
+    const medals = ['🥈', '🥇', '🥉'];
+    const classes = ['second', 'first', 'third'];
+    const top3 = ranking.slice(0, 3);
+
+    // Ordem: 2º, 1º, 3º
+    const order = [1, 0, 2];
+
+    order.forEach((pos, idx) => {
+        const player = top3[pos];
+        if (!player) return;
+
+        const place = document.createElement('div');
+        place.className = 'podium-place-enhanced';
+
+        place.innerHTML = `
+            <div class="podium-avatar-enhanced ${classes[idx]}">
+                ${medals[idx]}
+            </div>
+            <div class="podium-block-enhanced ${classes[idx]}">
+                <div class="podium-name-enhanced">${escapeHtml(player.name)}</div>
+                <div class="podium-score-enhanced">${player.score} pts</div>
+                <div class="podium-rank-number">${pos + 1}</div>
+            </div>
+        `;
+
+        podiumDiv.appendChild(place);
+    });
+
+    // Mensagem de vitória
+    const victoryMsg = document.createElement('div');
+    victoryMsg.className = 'victory-message';
+    victoryMsg.innerHTML = '<h2>🏆 RACE FINISHED! 🏆</h2>';
+
+    // Container central
+    const content = document.createElement('div');
+    content.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 10;
+    `;
+
+    content.appendChild(victoryMsg);
+    content.appendChild(podiumDiv);
+
+    overlay.appendChild(content);
+
+    // Remover após a animação
+    setTimeout(() => {
+        if (content.parentNode) content.parentNode.removeChild(content);
+    }, 8000);
+}
+
+// Helper para escapar HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
