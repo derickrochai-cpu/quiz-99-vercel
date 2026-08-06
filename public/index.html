@@ -61,14 +61,54 @@
             z-index: -1;
         }
 
-        /* Fundo limpo estilo 99 B2B */
+        /* Fundo com animação de estrada */
         .bg-animation {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             overflow: hidden;
             z-index: -1;
-            background: linear-gradient(135deg, var(--off-white) 0%, #e8edf2 50%, var(--off-white) 100%);
+            background: linear-gradient(135deg, var(--off-white) 0%, #e8e8e8 100%);
+        }
+
+        .road {
+            position: absolute;
+            bottom: 0;
+            width: 100%; height: 200px;
+            background: linear-gradient(to bottom, #333 0%, var(--preto) 100%);
+            border-top: 4px solid var(--azul-principal);
+        }
+
+        .road-lines {
+            position: absolute;
+            bottom: 100px;
+            width: 100%; height: 10px;
+            background: repeating-linear-gradient(90deg, transparent, transparent 50px, var(--azul-principal) 50px, var(--azul-principal) 100px);
+            animation: moveRoad 2s linear infinite;
+        }
+
+        @keyframes moveRoad {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100px); }
+        }
+
+        .car {
+            position: absolute;
+            bottom: 120px;
+            font-size: 3rem;
+            animation: drive 8s linear infinite;
+        }
+
+        .car:nth-child(1) { left: -100px; animation-delay: 0s; }
+        .car:nth-child(2) { left: -100px; animation-delay: 2s; }
+        .car:nth-child(3) { left: -100px; animation-delay: 4s; }
+
+        @keyframes drive {
+            0% { transform: translateX(0) scaleX(1); }
+            45% { transform: translateX(calc(100vw + 100px)) scaleX(1); }
+            50% { transform: translateX(calc(100vw + 100px)) scaleX(-1); }
+            95% { transform: translateX(0) scaleX(-1); }
+            100% { transform: translateX(0) scaleX(1); }
         }
 
         .screen {
@@ -184,41 +224,40 @@
             background: linear-gradient(90deg, var(--amarelo-99) 0%, var(--amarelo-claro) 100%);
         }
 
-        /* Logo estilo 99 para empresas */
-        .logo-empresas {
+        /* Logo estilo 99 oficial */
+        .logo-99 {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            gap: 0;
         }
 
-        .logo-empresas .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: var(--azul-principal);
-            border-radius: 12px;
+        .logo-99 .nines {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-        }
-
-        .logo-empresas .logo-text {
-            text-align: left;
-        }
-
-        .logo-empresas .logo-text-main {
-            font-size: 2.5rem;
+            font-size: 5rem;
             font-weight: 900;
-            color: var(--preto);
             line-height: 1;
+            letter-spacing: -8px;
         }
 
-        .logo-empresas .logo-text-sub {
-            font-size: 1rem;
+        .logo-99 .nine-first {
+            color: var(--amarelo-99);
+            text-shadow: 2px 2px 0 var(--azul-principal), -1px -1px 0 rgba(255,255,255,0.3);
+        }
+
+        .logo-99 .nine-second {
+            color: var(--azul-principal);
+            margin-left: -5px;
+        }
+
+        .logo-99-tagline {
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--azul-principal);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 5px;
         }
 
         /* Grid de cards para seleção */
@@ -1904,9 +1943,6 @@
     <div class="bg-animation">
         <div class="road"></div>
         <div class="road-lines"></div>
-        <div class="car">🚕</div>
-        <div class="car">🚗</div>
-        <div class="car">🚙</div>
     </div>
 
     <!-- ============================================ -->
@@ -1915,13 +1951,7 @@
     <div id="start-animation" class="start-animation-overlay">
         <div class="countdown-container">
             <div id="countdown-number" class="countdown-number">3</div>
-            <div id="countdown-text" class="countdown-text">READY?</div>
-        </div>
-        <div class="racing-cars-animation">
-            <div class="race-car">🚕</div>
-            <div class="race-car">🏍️</div>
-            <div class="race-car">🚗</div>
-            <div class="race-car">🛵</div>
+            <div id="countdown-text" class="countdown-text">PREPARAR?</div>
         </div>
     </div>
 
@@ -1946,15 +1976,15 @@
     <!-- ============================================ -->
     <div id="home-screen" class="screen active">
         <div class="template-card" style="text-align: center;">
-            <div class="logo-empresas">
-                <div class="logo-icon">🚕</div>
-                <div class="logo-text">
-                    <div class="logo-text-main">99</div>
-                    <div class="logo-text-sub">para Empresas</div>
+            <div class="logo-99">
+                <div class="nines">
+                    <span class="nine-first">9</span>
+                    <span class="nine-second">9</span>
                 </div>
             </div>
-            <div style="font-size: 2rem; font-weight: 800; color: var(--azul-principal); margin-bottom: 10px;">Quiz 99</div>
-            <div style="font-size: 1.1rem; color: #666; margin-bottom: 40px;">Teste seus conhecimentos sobre a 99</div>
+            <div class="logo-99-tagline">para Empresas</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--azul-principal); margin: 20px 0 10px;">Quiz</div>
+            <div style="font-size: 1rem; color: #666; margin-bottom: 40px;">Teste seus conhecimentos</div>
 
             <div class="card-grid" style="margin: 0 auto;">
                 <div class="card-option" onclick="showScreen('player-login')">
@@ -2029,39 +2059,27 @@
     <!-- WAITING SCREEN (PLAYER) -->
     <!-- ============================================ -->
     <div id="waiting-screen" class="screen">
-        <div class="waiting-screen">
-            <div class="waiting-animation-container">
-                <div class="waiting-pulse">
-                    <div class="waiting-animation">🏁</div>
+        <div class="template-card" style="text-align: center; max-width: 500px;">
+            <div style="margin-bottom: 30px;">
+                <div class="logo-99" style="margin-bottom: 10px;">
+                    <div class="nines">
+                        <span class="nine-first">9</span>
+                        <span class="nine-second">9</span>
+                    </div>
                 </div>
-                <div class="waiting-text waiting-pulse" style="font-size: 2rem; margin: 20px 0;">Aguardando o início da corrida...</div>
+                <div class="logo-99-tagline">para Empresas</div>
+            </div>
 
-                <!-- Grade de largada animada -->
-                <div class="starting-grid" id="starting-grid">
-                    <div class="grid-position"><span class="position-number">1</span><span class="avatar">🏎️</span></div>
-                    <div class="grid-position"><span class="position-number">2</span><span class="avatar">🏍️</span></div>
-                    <div class="grid-position"><span class="position-number">3</span><span class="avatar">🚕</span></div>
-                    <div class="grid-position"><span class="position-number">4</span><span class="avatar">🚗</span></div>
-                    <div class="grid-position"><span class="position-number">5</span><span class="avatar">🛵</span></div>
-                </div>
+            <div style="margin: 40px 0;">
+                <div class="loading" style="width: 60px; height: 60px; border: 6px solid #e0e0e0; border-top-color: var(--azul-principal); margin: 0 auto 20px;"></div>
+                <div style="font-size: 1.3rem; font-weight: 700; color: var(--azul-principal); margin-bottom: 10px;">Aguardando início...</div>
+                <div style="font-size: 1rem; color: #666;">O organizador iniciará o quiz em breve</div>
+            </div>
 
-                <!-- Semáforo -->
-                <div class="traffic-light">
-                    <div class="light red" id="light-red"></div>
-                    <div class="light yellow" id="light-yellow"></div>
-                    <div class="light green" id="light-green"></div>
-                </div>
-
-                <div class="waiting-text" id="waiting-players">Jogadores: 0</div>
-                <div class="players-list" id="players-avatars"></div>
-
-                <!-- Pit crew -->
-                <div class="pit-crew">
-                    <div class="crew-member">🔧</div>
-                    <div class="crew-member">⛽</div>
-                    <div class="crew-member">🛠️</div>
-                    <div class="crew-member">⚡</div>
-                </div>
+            <div style="background: var(--off-white); border-radius: 12px; padding: 20px; margin-top: 30px;">
+                <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Jogadores conectados</div>
+                <div style="font-size: 2rem; font-weight: 800; color: var(--azul-principal);" id="waiting-players">0</div>
+                <div class="players-list" id="players-avatars" style="margin-top: 15px; justify-content: center;"></div>
             </div>
         </div>
     </div>
@@ -2117,13 +2135,8 @@
     <!-- Animação de transição entre perguntas -->
     <div id="question-transition" class="start-animation-overlay" style="z-index: 100;">
         <div style="text-align: center;">
-            <div style="font-size: 4rem; animation: pulse 1s ease-in-out infinite;">🏁</div>
-            <div style="font-size: 2rem; color: var(--amarelo-99); font-weight: 900; margin-top: 20px;">NEXT LAP!</div>
-            <div style="font-size: 1.5rem; color: #FFF; margin-top: 10px;">Get Ready...</div>
-        </div>
-        <div class="racing-cars-animation">
-            <div class="race-car">🚕</div>
-            <div class="race-car">🚗</div>
+            <div style="font-size: 2rem; color: var(--branco); font-weight: 900; margin-bottom: 20px;">PRÓXIMA PERGUNTA</div>
+            <div style="font-size: 1.3rem; color: var(--amarelo-99);">Prepare-se...</div>
         </div>
     </div>
 
