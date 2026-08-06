@@ -27,58 +27,48 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: var(--off-white);
+            background: linear-gradient(135deg, var(--off-white) 0%, #e8e8e8 100%);
             min-height: 100vh;
             color: var(--preto);
             overflow-x: hidden;
+            position: relative;
         }
 
+        /* Borda azul estilo template 99 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 12px solid var(--azul-principal);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Padrão sutil de fundo */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0, 79, 148, 0.03) 35px, rgba(0, 79, 148, 0.03) 70px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Fundo limpo estilo 99 B2B */
         .bg-animation {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             overflow: hidden;
             z-index: -1;
-        }
-
-        .road {
-            position: absolute;
-            bottom: 0;
-            width: 100%; height: 200px;
-            background: linear-gradient(to bottom, #1a1a1a 0%, var(--preto) 100%);
-            border-top: 4px solid var(--amarelo-99);
-        }
-
-        .road-lines {
-            position: absolute;
-            bottom: 100px;
-            width: 100%; height: 10px;
-            background: repeating-linear-gradient(90deg, transparent, transparent 50px, var(--amarelo-99) 50px, var(--amarelo-99) 100px);
-            animation: moveRoad 2s linear infinite;
-        }
-
-        @keyframes moveRoad {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100px); }
-        }
-
-        .car {
-            position: absolute;
-            bottom: 120px;
-            font-size: 3rem;
-            animation: drive 8s linear infinite;
-        }
-
-        .car:nth-child(1) { left: -100px; animation-delay: 0s; }
-        .car:nth-child(2) { left: -100px; animation-delay: 2s; }
-        .car:nth-child(3) { left: -100px; animation-delay: 4s; }
-
-        @keyframes drive {
-            0% { transform: translateX(0) scaleX(1); }
-            45% { transform: translateX(calc(100vw + 100px)) scaleX(1); }
-            50% { transform: translateX(calc(100vw + 100px)) scaleX(-1); }
-            95% { transform: translateX(0) scaleX(-1); }
-            100% { transform: translateX(0) scaleX(1); }
+            background: linear-gradient(135deg, var(--off-white) 0%, #e8edf2 50%, var(--off-white) 100%);
         }
 
         .screen {
@@ -168,6 +158,110 @@
 
         .btn-admin:hover {
             box-shadow: 0 12px 0 var(--azul-medio), 0 20px 30px rgba(0, 79, 148, 0.4);
+        }
+
+        /* Cards estilo template 99 */
+        .template-card {
+            background: var(--branco);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow:
+                0 20px 60px rgba(0, 79, 148, 0.15),
+                0 0 0 1px rgba(0, 79, 148, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .template-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--amarelo-99) 0%, var(--amarelo-claro) 100%);
+        }
+
+        /* Logo estilo 99 para empresas */
+        .logo-empresas {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .logo-empresas .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--azul-principal);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .logo-empresas .logo-text {
+            text-align: left;
+        }
+
+        .logo-empresas .logo-text-main {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--preto);
+            line-height: 1;
+        }
+
+        .logo-empresas .logo-text-sub {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--azul-principal);
+        }
+
+        /* Grid de cards para seleção */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            width: 90%;
+        }
+
+        .card-option {
+            background: var(--branco);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 20px rgba(0, 79, 148, 0.08);
+        }
+
+        .card-option:hover {
+            transform: translateY(-5px);
+            border-color: var(--amarelo-99);
+            box-shadow: 0 12px 30px rgba(0, 79, 148, 0.15);
+        }
+
+        .card-option .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .card-option .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--preto);
+            margin-bottom: 8px;
+        }
+
+        .card-option .card-desc {
+            font-size: 0.95rem;
+            color: #666;
         }
 
         .btn-danger {
@@ -1851,32 +1945,58 @@
     <!-- HOME SCREEN -->
     <!-- ============================================ -->
     <div id="home-screen" class="screen active">
-        <div class="logo">QUIZ<span>99</span> para Empresas</div>
-        <div class="tagline">🏁 Teste seus conhecimentos!</div>
-        <button class="btn" onclick="showScreen('player-login')">🎮 Entrar no Jogo</button>
-        <button class="btn btn-admin" onclick="showScreen('admin-login')">👤 Área do Admin</button>
+        <div class="template-card" style="text-align: center;">
+            <div class="logo-empresas">
+                <div class="logo-icon">🚕</div>
+                <div class="logo-text">
+                    <div class="logo-text-main">99</div>
+                    <div class="logo-text-sub">para Empresas</div>
+                </div>
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--azul-principal); margin-bottom: 10px;">Quiz 99</div>
+            <div style="font-size: 1.1rem; color: #666; margin-bottom: 40px;">Teste seus conhecimentos sobre a 99</div>
+
+            <div class="card-grid" style="margin: 0 auto;">
+                <div class="card-option" onclick="showScreen('player-login')">
+                    <div class="card-icon">🎮</div>
+                    <div class="card-title">Sou Participante</div>
+                    <div class="card-desc">Entrar com código do jogo</div>
+                </div>
+                <div class="card-option" onclick="showScreen('admin-login')">
+                    <div class="card-icon">👤</div>
+                    <div class="card-title">Sou Organizador</div>
+                    <div class="card-desc">Criar e gerenciar quizzes</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================ -->
     <!-- PLAYER LOGIN -->
     <!-- ============================================ -->
     <div id="player-login" class="screen">
-        <div class="form-container">
-            <div class="form-title">🏁 Entrar na Corrida</div>
+        <div class="template-card">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">🎮</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--azul-principal);">Entrar no Jogo</div>
+                <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">Digite seus dados para participar</div>
+            </div>
+
             <div class="input-group">
-                <label>Seu Nome</label>
-                <input type="text" id="player-name" placeholder="Digite seu nome">
+                <label style="color: var(--azul-principal); font-weight: 700;">Seu Nome</label>
+                <input type="text" id="player-name" placeholder="Digite seu nome completo" style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px;">
             </div>
             <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="player-email" placeholder="seu@email.com">
+                <label style="color: var(--azul-principal); font-weight: 700;">Email</label>
+                <input type="email" id="player-email" placeholder="seu@email.com" style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px;">
             </div>
             <div class="input-group">
-                <label>Código do Jogo</label>
-                <input type="text" id="game-code" placeholder="Digite o código do jogo">
+                <label style="color: var(--azul-principal); font-weight: 700;">Código do Jogo</label>
+                <input type="text" id="game-code" placeholder="Ex: ABC123" style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; text-transform: uppercase;">
             </div>
-            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:20px;">🚀 Começar</button>
-            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Voltar</button>
+
+            <button class="btn" onclick="joinGame()" style="width:100%; margin-top:30px; padding: 18px;">🚀 Entrar no Jogo</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%; margin-top:10px;">← Voltar</button>
         </div>
     </div>
 
@@ -1884,18 +2004,24 @@
     <!-- ADMIN LOGIN -->
     <!-- ============================================ -->
     <div id="admin-login" class="screen">
-        <div class="form-container">
-            <div class="form-title">👑 Login do Admin</div>
+        <div class="template-card">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">👤</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--azul-principal);">Área do Organizador</div>
+                <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">Acesso restrito para administradores</div>
+            </div>
+
             <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="admin-email" placeholder="admin@99app.com">
+                <label style="color: var(--azul-principal); font-weight: 700;">Email</label>
+                <input type="email" id="admin-email" placeholder="admin@99app.com" style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px;">
             </div>
             <div class="input-group">
-                <label>Senha</label>
-                <input type="password" id="admin-password" placeholder="••••••">
+                <label style="color: var(--azul-principal); font-weight: 700;">Senha</label>
+                <input type="password" id="admin-password" placeholder="Digite sua senha" style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px;">
             </div>
-            <button class="btn" onclick="adminLogin()" style="width:100%; margin-top:20px;">🔑 Entrar</button>
-            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%;">← Voltar</button>
+
+            <button class="btn btn-admin" onclick="adminLogin()" style="width:100%; margin-top:30px; padding: 18px;">🔑 Acessar Painel</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')" style="width:100%; margin-top:10px;">← Voltar</button>
         </div>
     </div>
 
