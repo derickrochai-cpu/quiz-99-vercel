@@ -72,16 +72,14 @@ function handleGameUpdate(data, role) {
 
             // Se temos uma nova pergunta (número diferente ou ID diferente)
             if (isNewQuestion) {
-                // Primeira pergunta? Mostrar animação de início!
-                if (!hasShownStartAnimation && data.question.questionNumber === 1) {
-                    playStartAnimation(currentGame.code, 'player').then(() => {
-                        showingRanking = false;
-                        currentQuestion = data.question;
-                        hasAnsweredCurrent = false;
-                        showScreen('game-screen');
-                        renderPlayerQuestion(data.question);
-                    });
-                    return; // Não continuar - animação vai chamar o resto
+                // Verificar se é primeira pergunta e timer ainda não começou
+                if (data.question.questionNumber === 1 && data.timerNotStarted) {
+                    // Primeira pergunta com timer delay - mostrar animação!
+                    if (!hasShownStartAnimation) {
+                        playStartAnimation(currentGame.code, 'player');
+                    }
+                    // Não mostrar a tela de jogo ainda - continuar na animação/espera
+                    return;
                 }
 
                 showingRanking = false; // Resetar flag
@@ -126,6 +124,13 @@ function handleGameUpdate(data, role) {
     // Admin - Game playing
     console.log('[handleGameUpdate] Admin check:', { role, status: data.status });
     if (role === 'admin' && data.status === 'playing') {
+        // Verificar se é primeira pergunta e timer ainda não começou
+        if (data.question?.questionNumber === 1 && data.timerNotStarted && !hasShownStartAnimation) {
+            // Mostrar animação de countdown
+            playStartAnimation(currentGame.code, 'admin');
+            return; // Não mostrar tela de jogo ainda
+        }
+
         console.log('[handleGameUpdate] Game is playing, switching to control screen');
         const isOnControl = document.getElementById('admin-game-control')?.classList.contains('active');
         console.log('[handleGameUpdate] Is on control screen:', isOnControl);
@@ -764,101 +769,41 @@ document.head.appendChild(adminStyle);
 async function startGame() {
     console.log('[startGame] ===========================');
     console.log('[startGame] Button clicked');
-    console.log('[startGame] currentGame:', JSON.stringify(currentGame));
-    console.log('[startGame] adminToken present:', !!adminToken);
 
     if (!currentGame?.code) {
-        console.error('[startGame] ERROR: No currentGame.code!');
         alert('Nenhum jogo!');
         return;
     }
 
-    // PRIMEIRO: Mostrar animação de contagem para o admin
-    // O timer só vai começar DEPOIS da animação
-    await playStartAnimationAdmin();
-
-    // DEPOIS da animação: chamar API para iniciar o jogo
     const gameCode = currentGame.code;
-    console.log('[startGame] Game code:', gameCode);
 
+    // 1. Chamar API imediatamente com delay de 4.5s para animação
     try {
-        console.log('[startGame] Sending POST to /api/game/start');
-        // Animation duration: 4 segundos (3,2,1 + GO!)
-        const ANIMATION_DURATION = 4800;
-        const requestBody = { gameCode: gameCode, animationDelay: ANIMATION_DURATION };
-        console.log('[startGame] Request body:', JSON.stringify(requestBody));
-
         const response = await fetch('/api/game/start', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${adminToken}`
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({ gameCode: gameCode })
         });
 
-        console.log('[startGame] Response received');
-        console.log('[startGame] Response status:', response.status);
-
-        const data = await response.json();
-        console.log('[startGame] Response data:', JSON.stringify(data));
-
         if (!response.ok) {
-            console.error('[startGame] ERROR: Response not OK');
+            const data = await response.json();
             alert(data.error || 'Erro ao iniciar');
             return;
         }
 
-        console.log('[startGame] SUCCESS: Game started!');
+        console.log('[startGame] API chamada - jogo iniciado com delay');
+
+        // 2. Mostrar animação para o admin (mesma dos players)
+        // Admin vai ficar na animação junto com os players
+        playStartAnimation(gameCode, 'admin');
 
     } catch (err) {
-        console.error('[startGame] EXCEPTION:', err);
+        console.error('[startGame] Erro:', err);
         alert('Erro: ' + err.message);
     }
-}
-
-// Animação de contagem para o admin
-async function playStartAnimationAdmin() {
-    const overlay = document.getElementById('start-animation');
-    const numberEl = document.getElementById('countdown-number');
-    const textEl = document.getElementById('countdown-text');
-
-    // PARAR o polling durante a animação
-    stopPolling();
-
-    overlay.classList.add('active');
-
-    const messages = ['READY?', 'SET...', 'GO!'];
-    const numbers = ['3', '2', '1', 'GO!'];
-
-    for (let i = 0; i < 4; i++) {
-        // Reset animation
-        numberEl.style.animation = 'none';
-        numberEl.offsetHeight; // Trigger reflow
-        numberEl.style.animation = 'countdown_pop 1s ease-out';
-
-        if (i < 3) {
-            numberEl.textContent = numbers[i];
-            textEl.textContent = messages[i] || '';
-            addRacingCars(i);
-        } else {
-            // GO!
-            numberEl.textContent = '';
-            numberEl.style.fontSize = '12rem';
-            textEl.innerHTML = '<div class="go-text">GO!</div>';
-            createGoEffect();
-        }
-
-        await new Promise(r => setTimeout(r, 1000));
-    }
-
-    // Aguardar mais um pouco para o efeito do GO
-    await new Promise(r => setTimeout(r, 800));
-
-    overlay.classList.remove('active');
-
-    // RESTART do polling após a animação
-    startPolling(currentGame.code, 'admin');
 }
 
 // ============================================
@@ -1002,15 +947,13 @@ async function playStartAnimation(gameCode, role) {
     const numberEl = document.getElementById('countdown-number');
     const textEl = document.getElementById('countdown-text');
 
-    // PARAR o polling durante a animação
-    stopPolling();
+    // NÃO parar o polling - precisamos continuar recebendo updates
+    // O polling continua rodando em background
 
     overlay.classList.add('active');
 
     const messages = ['READY?', 'SET...', 'GO!'];
     const numbers = ['3', '2', '1', 'GO!'];
-
-    // Motor roncando - tocar som aqui se tiver áudio
 
     for (let i = 0; i < 4; i++) {
         // Reset animation
@@ -1021,16 +964,12 @@ async function playStartAnimation(gameCode, role) {
         if (i < 3) {
             numberEl.textContent = numbers[i];
             textEl.textContent = messages[i] || '';
-
-            // Adicionar carros acelerando
             addRacingCars(i);
         } else {
             // GO!
             numberEl.textContent = '';
             numberEl.style.fontSize = '12rem';
             textEl.innerHTML = '<div class="go-text">GO!</div>';
-
-            // Efeito de zoom total
             createGoEffect();
         }
 
@@ -1042,13 +981,7 @@ async function playStartAnimation(gameCode, role) {
 
     overlay.classList.remove('active');
     hasShownStartAnimation = true;
-
-    // Para admin, o polling já foi reiniciado no playStartAnimationAdmin
-    // Para player, continuar no estado 'waiting' até receber 'playing'
-    if (role === 'player') {
-        // Jogadores vão ficar na tela de espera até o admin iniciar
-        // O polling vai detectar quando status mudar para 'playing'
-    }
+    // O polling continua, e o próximo poll vai mostrar a tela do jogo quando timer começar
 }
 
 // Adicionar carros correndo na animação de início

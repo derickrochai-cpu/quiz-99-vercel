@@ -109,10 +109,12 @@ module.exports = async (req, res) => {
       // Usar questionStartedAt para calcular tempo
       const questionStartTime = new Date(game.questionStartedAt || game.updatedAt || game.startedAt).getTime();
       const now = Date.now();
+      const timeUntilStart = Math.floor((questionStartTime - now) / 1000);
       let elapsed = Math.floor((now - questionStartTime) / 1000);
 
-      // Se o tempo ainda não começou (elapsed negativo), mostrar tempo cheio
-      if (elapsed < 0) {
+      // Se o tempo ainda não começou (elapsed negativo)
+      const timerNotStarted = elapsed < 0;
+      if (timerNotStarted) {
         elapsed = 0;
       }
 
@@ -127,8 +129,14 @@ module.exports = async (req, res) => {
         totalQuestions: game.questions.length
       };
 
+      // Flag para indicar que o timer ainda não começou (animação em andamento)
+      if (timerNotStarted) {
+        response.timerNotStarted = true;
+        response.timeUntilStart = timeUntilStart;
+      }
+
       // Só mostrar a resposta correta quando o tempo acabar (timeLeft = 0)
-      if (timeLeft === 0) {
+      if (timeLeft === 0 && !timerNotStarted) {
         response.question.correctAnswer = q.correctAnswer;
         response.questionEnded = true; // Flag para indicar que a pergunta acabou
       }

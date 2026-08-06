@@ -38,9 +38,8 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  const { gameCode, animationDelay = 0 } = req.body;
+  const { gameCode } = req.body;
   console.log('[start] Game code:', gameCode);
-  console.log('[start] Animation delay (ms):', animationDelay);
 
   if (!gameCode) {
     return res.status(400).json({ error: 'Game code required' });
@@ -53,18 +52,19 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Game not found' });
   }
 
-  // Iniciar jogo - mas só começar o timer DEPOIS do delay da animação
+  // Iniciar jogo com delay de 4.5 segundos para a animação de countdown
+  const ANIMATION_DURATION = 4500; // 4.5 segundos
   const now = Date.now();
-  const questionWillStartAt = new Date(now + animationDelay).toISOString();
   const nowISO = new Date(now).toISOString();
+  const questionStartTime = new Date(now + ANIMATION_DURATION).toISOString();
 
   const updates = {
     status: 'playing',
     currentQuestion: 0,
     startedAt: now,
     updatedAt: nowISO,
-    // O timer começa a contar DEPOIS da animação
-    questionStartedAt: questionWillStartAt,
+    // Timer só vai começar depois da animação
+    questionStartedAt: questionStartTime,
     answers: {},
     timeLeft: game.questions[0].time
   };
