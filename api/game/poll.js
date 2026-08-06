@@ -28,10 +28,16 @@ module.exports = async (req, res) => {
   if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
     const currentQ = game.questions[game.currentQuestion];
     if (currentQ) {
-      // Usar updatedAt como referência do início da pergunta atual
-      const questionStartTime = new Date(game.updatedAt || game.startedAt).getTime();
+      // Usar questionStartedAt se disponível, senão fallback para updatedAt/startedAt
+      const questionStartTime = new Date(game.questionStartedAt || game.updatedAt || game.startedAt).getTime();
       const now = Date.now();
-      const elapsed = Math.floor((now - questionStartTime) / 1000);
+      let elapsed = Math.floor((now - questionStartTime) / 1000);
+
+      // Se o tempo ainda não começou (elapsed negativo), mostrar tempo cheio
+      if (elapsed < 0) {
+        elapsed = 0;
+      }
+
       const timeLeft = Math.max(0, currentQ.time - elapsed);
 
       // Se acabou o tempo, avançar automaticamente
@@ -103,7 +109,13 @@ module.exports = async (req, res) => {
       // Usar questionStartedAt para calcular tempo
       const questionStartTime = new Date(game.questionStartedAt || game.updatedAt || game.startedAt).getTime();
       const now = Date.now();
-      const elapsed = Math.floor((now - questionStartTime) / 1000);
+      let elapsed = Math.floor((now - questionStartTime) / 1000);
+
+      // Se o tempo ainda não começou (elapsed negativo), mostrar tempo cheio
+      if (elapsed < 0) {
+        elapsed = 0;
+      }
+
       const timeLeft = Math.max(0, q.time - elapsed);
 
       response.question = {

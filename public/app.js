@@ -773,12 +773,19 @@ async function startGame() {
         return;
     }
 
+    // PRIMEIRO: Mostrar animação de contagem para o admin
+    // O timer só vai começar DEPOIS da animação
+    await playStartAnimationAdmin();
+
+    // DEPOIS da animação: chamar API para iniciar o jogo
     const gameCode = currentGame.code;
     console.log('[startGame] Game code:', gameCode);
 
     try {
         console.log('[startGame] Sending POST to /api/game/start');
-        const requestBody = { gameCode: gameCode };
+        // Animation duration: 4 segundos (3,2,1 + GO!)
+        const ANIMATION_DURATION = 4800;
+        const requestBody = { gameCode: gameCode, animationDelay: ANIMATION_DURATION };
         console.log('[startGame] Request body:', JSON.stringify(requestBody));
 
         const response = await fetch('/api/game/start', {
@@ -808,6 +815,50 @@ async function startGame() {
         console.error('[startGame] EXCEPTION:', err);
         alert('Erro: ' + err.message);
     }
+}
+
+// Animação de contagem para o admin
+async function playStartAnimationAdmin() {
+    const overlay = document.getElementById('start-animation');
+    const numberEl = document.getElementById('countdown-number');
+    const textEl = document.getElementById('countdown-text');
+
+    // PARAR o polling durante a animação
+    stopPolling();
+
+    overlay.classList.add('active');
+
+    const messages = ['READY?', 'SET...', 'GO!'];
+    const numbers = ['3', '2', '1', 'GO!'];
+
+    for (let i = 0; i < 4; i++) {
+        // Reset animation
+        numberEl.style.animation = 'none';
+        numberEl.offsetHeight; // Trigger reflow
+        numberEl.style.animation = 'countdown_pop 1s ease-out';
+
+        if (i < 3) {
+            numberEl.textContent = numbers[i];
+            textEl.textContent = messages[i] || '';
+            addRacingCars(i);
+        } else {
+            // GO!
+            numberEl.textContent = '';
+            numberEl.style.fontSize = '12rem';
+            textEl.innerHTML = '<div class="go-text">GO!</div>';
+            createGoEffect();
+        }
+
+        await new Promise(r => setTimeout(r, 1000));
+    }
+
+    // Aguardar mais um pouco para o efeito do GO
+    await new Promise(r => setTimeout(r, 800));
+
+    overlay.classList.remove('active');
+
+    // RESTART do polling após a animação
+    startPolling(currentGame.code, 'admin');
 }
 
 // ============================================
@@ -992,8 +1043,12 @@ async function playStartAnimation(gameCode, role) {
     overlay.classList.remove('active');
     hasShownStartAnimation = true;
 
-    // RESTART do polling após a animação
-    startPolling(gameCode, role);
+    // Para admin, o polling já foi reiniciado no playStartAnimationAdmin
+    // Para player, continuar no estado 'waiting' até receber 'playing'
+    if (role === 'player') {
+        // Jogadores vão ficar na tela de espera até o admin iniciar
+        // O polling vai detectar quando status mudar para 'playing'
+    }
 }
 
 // Adicionar carros correndo na animação de início
