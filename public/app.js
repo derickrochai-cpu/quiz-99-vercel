@@ -96,14 +96,33 @@ function handleGameUpdate(data, role) {
 
                 // Quando o tempo acabou (timeLeft = 0)
                 if (data.timeLeft === 0 && data.question.correctAnswer !== undefined && !showingRanking) {
-                    // PASSO 1: Mostrar resposta correta/errada
+                    // PASSO 1: Mostrar resposta correta/errada na tela do jogo
                     showCorrectAnswer(data.question.correctAnswer);
 
-                    // PASSO 2: Esperar 3 segundos e depois mostrar ranking
+                    // PASSO 2: Esperar 3 segundos e depois mostrar ranking com resposta
                     if (data.ranking) {
                         showingRanking = true;
+
+                        // Verificar se o jogador acertou
+                        const myAnswer = data.question.myAnswer; // Se o backend enviar
+                        const wasCorrect = playerAnswer === data.question.correctAnswer;
+
+                        // Calcular pontos ganhos (se tiver na resposta)
+                        let pointsEarned = 0;
+                        if (wasCorrect && data.answers) {
+                            const qIndex = data.currentQuestion;
+                            const myAnswerData = data.answers[qIndex]?.[currentPlayer?.id];
+                            pointsEarned = myAnswerData?.points || 0;
+                        }
+
                         setTimeout(() => {
-                            showInterimRanking(data.ranking);
+                            showInterimRanking(
+                                data.ranking,
+                                data.question,
+                                data.question.correctAnswer,
+                                wasCorrect,
+                                pointsEarned
+                            );
                         }, 3000); // 3 segundos para ver o resultado
                     }
                 }
@@ -379,10 +398,36 @@ async function submitAnswer(answerIndex) {
 }
 
 // Mostrar ranking intermediário entre perguntas
-function showInterimRanking(ranking) {
+function showInterimRanking(ranking, question, correctAnswer, wasCorrect, pointsEarned) {
     const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
     const myScore = ranking.find(p => p.id === currentPlayer?.id)?.score || 0;
     const top5 = ranking.slice(0, 5);
+
+    // Mostrar pergunta e resposta
+    const questionTextEl = document.getElementById('interim-question-text');
+    const correctAnswerEl = document.getElementById('interim-correct-answer');
+    const playerResultEl = document.getElementById('interim-player-result');
+
+    if (questionTextEl && question) {
+        questionTextEl.textContent = question.text;
+    }
+
+    if (correctAnswerEl && question && correctAnswer !== undefined) {
+        const letter = LETTERS[correctAnswer];
+        const text = question.options[correctAnswer];
+        correctAnswerEl.innerHTML = `<span style="font-size: 1.5rem;">${letter}</span> - ${text}`;
+    }
+
+    if (playerResultEl) {
+        if (wasCorrect) {
+            playerResultEl.innerHTML = `🎉 <span style="color: #28a745;">Você acertou! +${pointsEarned} pontos</span>`;
+        } else if (playerAnswer !== null) {
+            const wrongLetter = LETTERS[playerAnswer];
+            playerResultEl.innerHTML = `❌ <span style="color: #dc3545;">Você respondeu ${wrongLetter} (errado)</span>`;
+        } else {
+            playerResultEl.innerHTML = `⏱️ <span style="color: #666;">Tempo esgotado - sem resposta</span>`;
+        }
+    }
 
     document.getElementById('interim-my-position').innerHTML =
         `Sua posição: <strong>#${myRank}</strong> | Pontos: <strong>${myScore}</strong>`;

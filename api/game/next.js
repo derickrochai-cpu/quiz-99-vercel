@@ -81,10 +81,11 @@ module.exports = async (req, res) => {
 
     res.json({ success: true, status: 'finished', message: 'Game ended' });
   } else {
-    // Próxima pergunta
+    // Próxima pergunta - iniciar timer imediatamente
     await updateGame(gameCode, {
       currentQuestion: nextQuestion,
-      timeLeft: game.questions[nextQuestion].time
+      timeLeft: game.questions[nextQuestion].time,
+      questionStartedAt: new Date().toISOString() // Iniciar timer agora
     });
 
     res.json({

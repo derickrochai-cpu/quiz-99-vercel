@@ -79,15 +79,24 @@ module.exports = async (req, res) => {
           // Recarregar o jogo atualizado
           game = await getGame(gameCode);
         } else {
-          // PRÓXIMA PERGUNTA - Definir novo question_started_at
-          await updateGame(gameCode, {
-            currentQuestion: nextQuestion,
-            timeLeft: game.questions[nextQuestion].time,
-            questionStartedAt: new Date().toISOString()
-          });
+          // PRÓXIMA PERGUNTA - Avançar automaticamente após 5 segundos de intervalo
+          const now = Date.now();
+          const lastQuestionEndedAt = new Date(game.questionStartedAt || game.updatedAt).getTime();
+          const currentQ = game.questions[game.currentQuestion];
+          const questionDuration = (currentQ?.time || 30) * 1000;
+          const timeSinceQuestionEnded = now - (lastQuestionEndedAt + questionDuration);
 
-          // Recarregar o jogo atualizado
-          game = await getGame(gameCode);
+          // Só avançar se já passou 5 segundos de intervalo (tempo para ver ranking)
+          if (timeSinceQuestionEnded >= 5000) {
+            await updateGame(gameCode, {
+              currentQuestion: nextQuestion,
+              timeLeft: game.questions[nextQuestion].time,
+              questionStartedAt: new Date().toISOString()
+            });
+
+            // Recarregar o jogo atualizado
+            game = await getGame(gameCode);
+          }
         }
       }
     }
