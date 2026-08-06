@@ -160,6 +160,16 @@
             box-shadow: 0 12px 0 #333333, 0 20px 30px rgba(255,255,255,0.2);
         }
 
+        .btn-admin {
+            background: var(--azul-principal);
+            color: var(--branco);
+            box-shadow: 0 8px 0 var(--azul-medio), 0 15px 20px rgba(0, 79, 148, 0.3);
+        }
+
+        .btn-admin:hover {
+            box-shadow: 0 12px 0 var(--azul-medio), 0 20px 30px rgba(0, 79, 148, 0.4);
+        }
+
         .btn-danger {
             background: #dc3545;
             color: var(--branco);
@@ -1844,7 +1854,7 @@
         <div class="logo">QUIZ<span>99</span></div>
         <div class="tagline">🏁 Race Your Knowledge!</div>
         <button class="btn" onclick="showScreen('player-login')">🎮 Join Game</button>
-        <button class="btn btn-secondary" onclick="showScreen('admin-login')">👤 Admin Area</button>
+        <button class="btn btn-admin" onclick="showScreen('admin-login')">👤 Admin Area</button>
     </div>
 
     <!-- ============================================ -->
