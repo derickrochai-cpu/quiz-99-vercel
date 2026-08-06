@@ -74,7 +74,7 @@ function handleGameUpdate(data, role) {
             if (isNewQuestion) {
                 // Primeira pergunta? Mostrar animação de início!
                 if (!hasShownStartAnimation && data.question.questionNumber === 1) {
-                    playStartAnimation().then(() => {
+                    playStartAnimation(currentGame.code, 'player').then(() => {
                         showingRanking = false;
                         currentQuestion = data.question;
                         hasAnsweredCurrent = false;
@@ -188,7 +188,6 @@ function updateWaitingPlayers(players) {
     const count = players?.length || 0;
     const countEl = document.getElementById('waiting-players');
     const container = document.getElementById('players-avatars');
-    const gridPositions = document.querySelectorAll('.grid-position');
 
     if (countEl) countEl.textContent = `Jogadores: ${count}`;
 
@@ -200,20 +199,38 @@ function updateWaitingPlayers(players) {
     }
 
     // Animar grade de largada conforme jogadores entram
-    if (gridPositions.length > 0 && players) {
-        players.forEach((player, index) => {
-            if (index < gridPositions.length) {
-                const grid = gridPositions[index];
-                if (!grid.classList.contains('filled')) {
-                    grid.classList.add('filled');
-                    grid.querySelector('.avatar').textContent = player.name.charAt(0).toUpperCase();
-                }
-            }
-        });
-    }
+    updateStartingGrid(players);
 
     // Animar semáforo baseado no número de jogadores
     animateTrafficLight(count);
+}
+
+// Atualizar grade de largada de forma segura
+function updateStartingGrid(players) {
+    const gridContainer = document.getElementById('starting-grid');
+    if (!gridContainer) return;
+
+    const vehicles = ['🏎️', '🏍️', '🚕', '🚗', '🛵'];
+    const playerCount = players?.length || 0;
+
+    // Reconstruir a grade inteira
+    let html = '';
+    for (let i = 0; i < 5; i++) {
+        const player = players?.[i];
+        const isFilled = !!player;
+        const avatar = isFilled ? player.name.charAt(0).toUpperCase() : vehicles[i];
+
+        html += `
+            <div class="grid-position ${isFilled ? 'filled' : ''}" style="
+                animation: ${isFilled && !gridContainer.children[i]?.classList.contains('filled') ? 'grid_pop 0.5s ease-out' : 'none'};
+            ">
+                <span class="position-number">${i + 1}</span>
+                <span class="avatar">${avatar}</span>
+            </div>
+        `;
+    }
+
+    gridContainer.innerHTML = html;
 }
 
 // Animar semáforo
@@ -224,6 +241,12 @@ function animateTrafficLight(playerCount) {
     const green = document.getElementById('light-green');
 
     if (!red || !yellow || !green) return;
+
+    // Limpar intervalo anterior se existir
+    if (trafficLightInterval) {
+        clearInterval(trafficLightInterval);
+        trafficLightInterval = null;
+    }
 
     // Reset
     [red, yellow, green].forEach(l => l.classList.remove('active'));
@@ -237,18 +260,17 @@ function animateTrafficLight(playerCount) {
     } else {
         // Verde! Pronto para começar
         green.classList.add('active');
-        yellow.classList.remove('active');
-        red.classList.remove('active');
-    }
 
-    // Efeito de "calor do motor" com mais jogadores
-    if (playerCount >= 2 && !trafficLightInterval) {
+        // Efeito de "calor do motor" com 3+ jogadores
         trafficLightInterval = setInterval(() => {
-            // Piscar luzes aleatoriamente como se fosse um motor roncando
-            if (Math.random() > 0.7) {
-                yellow.classList.toggle('active');
+            if (!green.classList.contains('active')) {
+                clearInterval(trafficLightInterval);
+                trafficLightInterval = null;
+                return;
             }
-        }, 200);
+            // Piscar verde rapidinho
+            green.style.opacity = Math.random() > 0.5 ? '1' : '0.7';
+        }, 100);
     }
 }
 
@@ -924,10 +946,13 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 
 // Animação de contagem regressiva no início do jogo
-async function playStartAnimation() {
+async function playStartAnimation(gameCode, role) {
     const overlay = document.getElementById('start-animation');
     const numberEl = document.getElementById('countdown-number');
     const textEl = document.getElementById('countdown-text');
+
+    // PARAR o polling durante a animação
+    stopPolling();
 
     overlay.classList.add('active');
 
@@ -966,6 +991,9 @@ async function playStartAnimation() {
 
     overlay.classList.remove('active');
     hasShownStartAnimation = true;
+
+    // RESTART do polling após a animação
+    startPolling(gameCode, role);
 }
 
 // Adicionar carros correndo na animação de início
