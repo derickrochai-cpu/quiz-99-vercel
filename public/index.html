@@ -71,6 +71,13 @@
             justify-content: center;
         }
 
+        /* Exceção: Admin dashboard não deve centralizar conteúdo verticalmente */
+        #admin-dashboard.screen.active {
+            display: block !important;
+            padding-top: 80px;
+            overflow-y: auto;
+        }
+
         .logo {
             font-size: 4rem;
             font-weight: 900;
@@ -2255,6 +2262,23 @@
         .admin-panel {
             width: 100%;
             max-width: 1200px;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Admin Dashboard - Forçar visibilidade */
+        #admin-dashboard.screen.active {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            background: linear-gradient(135deg, var(--off-white) 0%, #e8e8e8 100%);
+        }
+
+        #admin-dashboard.screen.active .admin-panel {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         .admin-header {
@@ -2872,6 +2896,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=21"></script>
+    <script src="app.js?v=22"></script>
 </body>
 </html>
