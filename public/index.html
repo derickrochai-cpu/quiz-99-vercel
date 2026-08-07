@@ -2646,100 +2646,73 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- ADMIN DASHBOARD (CREATE QUIZ) -->
+    <!-- ADMIN DASHBOARD (CREATE QUIZ) - VERSÃO SIMPLIFICADA -->
     <!-- ============================================ -->
-    <div id="admin-dashboard" class="screen">
-        <div class="admin-panel">
-            <div class="admin-header">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <!-- Ícone Gráfico de Barras -->
-                    <div class="icon-99 icon-small" style="margin: 0;">
-                        <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
-                    </div>
-                    <div class="admin-title">Criar Novo Quiz</div>
-                </div>
-                <button class="btn btn-secondary btn-small" onclick="logoutAdmin()">Sair</button>
+    <div id="admin-dashboard" class="screen" style="background: #F1F1F1; display: none;">
+        <div style="width: 100%; max-width: 800px; margin: 0 auto; padding: 20px;">
+            <!-- Header -->
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 4px solid #FFDD00; display: flex; justify-content: space-between; align-items: center;">
+                <h1 style="color: #212121; margin: 0; font-size: 1.8rem;">🎯 Criar Novo Quiz</h1>
+                <button class="btn btn-secondary" onclick="logoutAdmin()">Sair</button>
             </div>
 
             <!-- Quiz Title -->
-            <div class="question-builder-container">
-                <div class="input-group">
-                    <label>📝 Quiz Title</label>
-                    <input type="text" id="quiz-title" placeholder="Ex: Quiz 99 - Jornada do Motorista">
-                </div>
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 3px solid #212121;">
+                <label style="display: block; color: #212121; font-weight: 700; margin-bottom: 10px;">📝 Título do Quiz</label>
+                <input type="text" id="quiz-title" placeholder="Ex: Quiz 99 - Jornada do Motorista" style="width: 100%; padding: 15px; border: 3px solid #212121; border-radius: 10px; font-size: 1.1rem;">
             </div>
 
             <!-- Questions List -->
-            <div class="question-builder-container">
-                <h2 style="color:#000; margin-bottom:20px;">❓ Perguntas</h2>
-                <div id="questions-list" class="question-list">
-                    <div class="empty-questions">
-                        <div class="empty-questions-icon">📝</div>
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 3px solid #212121;">
+                <h2 style="color: #212121; margin-bottom: 20px;">❓ Perguntas</h2>
+                <div id="questions-list">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 4rem; margin-bottom: 10px;">📝</div>
                         <p>Nenhuma pergunta ainda. Adicione sua primeira pergunta abaixo!</p>
                     </div>
                 </div>
             </div>
 
             <!-- Add Question Form -->
-            <div class="question-builder-container" id="add-question-form">
-                <h3 style="color:#000; margin-bottom:20px;">➕ Adicionar Nova Pergunta</h3>
+            <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 3px solid #212121;">
+                <h3 style="color: #212121; margin-bottom: 20px;">➕ Adicionar Nova Pergunta</h3>
 
-                <div class="input-group">
-                    <label>Texto da Pergunta</label>
-                    <textarea id="new-question-text" placeholder="Digite sua pergunta aqui..."></textarea>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; color: #212121; font-weight: 700; margin-bottom: 8px;">Texto da Pergunta</label>
+                    <textarea id="new-question-text" placeholder="Digite sua pergunta aqui..." style="width: 100%; padding: 15px; border: 3px solid #212121; border-radius: 10px; font-size: 1.1rem; min-height: 80px; resize: vertical;"></textarea>
                 </div>
 
-                <label style="color:#000; font-weight:700; margin-bottom:10px; display:block;">Opções (marque a resposta correta)</label>
-                <div class="options-inputs">
-                    <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-0" placeholder="Opção A">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-1" placeholder="Opção B">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-2" placeholder="Opção C">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="option-3" placeholder="Opção D">
-                    </div>
+                <label style="display: block; color: #212121; font-weight: 700; margin-bottom: 10px;">Opções (marque a resposta correta)</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="option-0" placeholder="Opção A" style="padding: 12px; border: 3px solid #212121; border-radius: 8px;">
+                    <input type="text" id="option-1" placeholder="Opção B" style="padding: 12px; border: 3px solid #212121; border-radius: 8px;">
+                    <input type="text" id="option-2" placeholder="Opção C" style="padding: 12px; border: 3px solid #212121; border-radius: 8px;">
+                    <input type="text" id="option-3" placeholder="Opção D" style="padding: 12px; border: 3px solid #212121; border-radius: 8px;">
                 </div>
 
-                <div class="correct-answer-selector">
-                    <label>Resposta Correta:</label>
-                    <label class="correct-option">
-                        <input type="radio" name="correct-answer" value="0" checked>
-                        <span>A</span>
-                    </label>
-                    <label class="correct-option">
-                        <input type="radio" name="correct-answer" value="1">
-                        <span>B</span>
-                    </label>
-                    <label class="correct-option">
-                        <input type="radio" name="correct-answer" value="2">
-                        <span>C</span>
-                    </label>
-                    <label class="correct-option">
-                        <input type="radio" name="correct-answer" value="3">
-                        <span>D</span>
-                    </label>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: #212121; font-weight: 700; margin-right: 15px;">Resposta Correta:</label>
+                    <label style="margin-right: 10px;"><input type="radio" name="correct-answer" value="0" checked> A</label>
+                    <label style="margin-right: 10px;"><input type="radio" name="correct-answer" value="1"> B</label>
+                    <label style="margin-right: 10px;"><input type="radio" name="correct-answer" value="2"> C</label>
+                    <label><input type="radio" name="correct-answer" value="3"> D</label>
                 </div>
 
-                <div class="input-group">
-                    <label>Tempo por Pergunta</label>
-                    <div class="time-selector">
-                        <input type="range" id="question-time" min="10" max="60" value="30" oninput="document.getElementById('time-display').textContent = this.value + 's';">
-                        <span class="time-value" id="time-display">30s</span>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; color: #212121; font-weight: 700; margin-bottom: 8px;">Tempo por Pergunta</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="question-time" min="10" max="60" value="30" oninput="document.getElementById('time-display').textContent = this.value + 's';" style="flex: 1;">
+                        <span id="time-display" style="font-weight: 800; color: #FFDD00; font-size: 1.2rem; min-width: 50px;">30s</span>
                     </div>
                 </div>
 
-                <button class="btn" onclick="addQuestion()">➕ Adicionar Pergunta</button>
+                <button class="btn" onclick="addQuestion()" style="width: 100%;">➕ Adicionar Pergunta</button>
             </div>
 
             <!-- Create Game Button -->
-            <div class="question-builder-container" style="text-align:center;">
-                <button class="btn btn-success" id="create-game-btn" onclick="createGame()" disabled style="font-size:1.5rem; padding:25px 50px;">🚀 Criar Jogo</button>
-                <p id="create-game-error" style="color:#dc3545; margin-top:15px; display:none;">⚠️ Adicione pelo menos 1 pergunta antes de criar o jogo!</p>
+            <div style="background: white; border-radius: 15px; padding: 20px; text-align: center; border: 3px solid #212121;">
+                <button class="btn btn-success" id="create-game-btn" onclick="createGame()" disabled style="font-size: 1.5rem; padding: 25px 50px;">🚀 Criar Jogo</button>
+                <p id="create-game-error" style="color: #dc3545; margin-top: 15px; display: none;">⚠️ Adicione pelo menos 1 pergunta antes de criar o jogo!</p>
             </div>
         </div>
     </div>
@@ -2896,6 +2869,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=22"></script>
+    <script src="app.js?v=23"></script>
 </body>
 </html>

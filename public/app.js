@@ -28,8 +28,10 @@ const MOTO_99 = '🏍️';
 function showScreen(screenId) {
     console.log('[showScreen] Tentando mostrar tela:', screenId);
 
+    // Esconder todas as telas
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
+        screen.style.display = 'none';
     });
 
     const target = document.getElementById(screenId);
@@ -37,6 +39,15 @@ function showScreen(screenId) {
 
     if (target) {
         target.classList.add('active');
+
+        // Para admin-dashboard, usar display block
+        if (screenId === 'admin-dashboard') {
+            target.style.display = 'block';
+            console.log('[showScreen] Admin-dashboard ativado como block');
+        } else {
+            target.style.display = 'flex';
+        }
+
         console.log('[showScreen] Tela ativada com sucesso:', screenId);
 
         // Scroll para o topo
