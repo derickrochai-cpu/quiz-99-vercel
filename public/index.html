@@ -148,32 +148,21 @@
 
         /* Ícones corporativos 99 B2B */
         .icon-99 {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-medio) 100%);
-            border-radius: 20px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 8px 20px rgba(0, 79, 148, 0.3);
+            margin: 0 auto 15px;
+            box-shadow: 0 6px 15px rgba(0, 79, 148, 0.25);
         }
 
         .icon-99 svg {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             fill: var(--branco);
-        }
-
-        .icon-small {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-        }
-
-        .icon-small svg {
-            width: 25px;
-            height: 25px;
         }
 
         /* Cards estilo template 99 */
@@ -1138,7 +1127,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, var(--preto) 0%, #1a1a1a 50%, var(--preto) 100%);
+            background: linear-gradient(180deg, #001a33 0%, #003366 50%, #004080 100%);
             z-index: 9999;
             display: none;
             flex-direction: column;
@@ -1157,9 +1146,24 @@
             width: 200%;
             height: 200%;
             background:
-                radial-gradient(circle at 20% 80%, rgba(245,197,0,0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(245,197,0,0.1) 0%, transparent 50%);
+                radial-gradient(circle at 20% 80%, rgba(255,221,0,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,221,0,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0,79,148,0.3) 0%, transparent 70%);
             animation: bg_pulse 2s ease-in-out infinite;
+        }
+
+        .start-animation-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 3%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.03) 0%, transparent 3%),
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 5%);
+            pointer-events: none;
         }
 
         @keyframes bg_pulse {
@@ -1170,79 +1174,135 @@
         .countdown-container {
             position: relative;
             z-index: 10;
+            background: rgba(0, 30, 60, 0.6);
+            border-radius: 30px;
+            padding: 50px 100px;
+            border: 4px solid var(--amarelo-99);
+            box-shadow:
+                0 0 50px rgba(255,221,0,0.3),
+                inset 0 0 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
         }
 
         .countdown-number {
-            font-size: 15rem;
+            font-size: 18rem;
             font-weight: 900;
             color: var(--amarelo-99);
             text-shadow:
-                0 0 20px rgba(245,197,0,0.5),
-                0 0 40px rgba(245,197,0,0.3),
-                0 0 60px rgba(245,197,0,0.2);
-            animation: countdown_pop 1s ease-out;
+                0 0 20px rgba(255,221,0,0.8),
+                0 0 40px rgba(255,221,0,0.5),
+                0 0 80px rgba(255,221,0,0.3),
+                4px 4px 0 rgba(0,0,0,0.5);
+            animation: countdown_pop 0.8s ease-out;
             line-height: 1;
+            text-align: center;
+            min-width: 300px;
         }
 
         @keyframes countdown_pop {
-            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-            50% { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+                filter: blur(20px);
+            }
+            50% {
+                transform: scale(1.3) rotate(5deg);
+                opacity: 1;
+                filter: blur(0);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
         }
 
         .countdown-text {
-            font-size: 3rem;
-            color: var(--branco);
+            font-size: 2.5rem;
+            color: #ffffff;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 10px;
+            letter-spacing: 8px;
             margin-top: 20px;
-            animation: text_glow 1s ease-in-out infinite alternate;
+            text-align: center;
+            animation: text_glow 0.8s ease-out;
         }
 
         @keyframes text_glow {
-            from { text-shadow: 0 0 10px rgba(245,197,0,0.5); }
-            to { text-shadow: 0 0 30px rgba(245,197,0,0.8), 0 0 50px rgba(245,197,0,0.5); }
+            0% { opacity: 0; transform: translateY(20px); }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                text-shadow:
+                    0 0 20px rgba(255,221,0,0.8),
+                    0 0 40px rgba(255,221,0,0.4);
+            }
         }
 
         .racing-cars-animation {
             position: absolute;
-            bottom: 10%;
+            bottom: 15%;
             width: 100%;
-            height: 200px;
+            height: 150px;
+            pointer-events: none;
+            overflow: hidden;
         }
 
         .race-car {
             position: absolute;
-            font-size: 5rem;
-            animation: race_start 1s linear forwards;
+            font-size: 4rem;
+            animation: race_start 2s ease-out forwards;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
         }
 
-        .race-car:nth-child(1) { left: 10%; animation-delay: 0s; }
-        .race-car:nth-child(2) { left: 30%; animation-delay: 0.1s; }
-        .race-car:nth-child(3) { left: 50%; animation-delay: 0.2s; }
-        .race-car:nth-child(4) { left: 70%; animation-delay: 0.15s; }
+        .race-car:nth-child(1) { left: 5%; animation-delay: 0s; bottom: 60%; }
+        .race-car:nth-child(2) { left: 25%; animation-delay: 0.15s; bottom: 30%; }
+        .race-car:nth-child(3) { left: 45%; animation-delay: 0.3s; bottom: 70%; }
+        .race-car:nth-child(4) { left: 65%; animation-delay: 0.1s; bottom: 40%; }
+        .race-car:nth-child(5) { left: 85%; animation-delay: 0.25s; bottom: 50%; }
 
         @keyframes race_start {
-            0% { transform: translateX(-100vw) scale(1); }
-            100% { transform: translateX(100vw) scale(1.2); }
+            0% {
+                transform: translateX(-100vw) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+                transform: translateX(-80vw) scale(1);
+            }
+            100% {
+                transform: translateX(100vw) scale(1.1);
+                opacity: 1;
+            }
         }
 
         .go-text {
-            font-size: 8rem;
+            font-size: 10rem;
             font-weight: 900;
             color: #00FF00;
             text-transform: uppercase;
-            animation: go_zoom 0.8s ease-out;
+            animation: go_zoom 0.6s ease-out forwards;
             text-shadow:
-                0 0 20px rgba(0,255,0,0.8),
-                0 0 40px rgba(0,255,0,0.5);
+                0 0 20px rgba(0,255,0,1),
+                0 0 40px rgba(0,255,0,0.8),
+                0 0 80px rgba(0,255,0,0.5),
+                4px 4px 0 rgba(0,0,0,0.3);
+            letter-spacing: 15px;
         }
 
         @keyframes go_zoom {
-            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
-            50% { transform: scale(1.5) rotate(5deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            0% {
+                transform: scale(0) rotate(-15deg);
+                opacity: 0;
+                filter: blur(10px);
+            }
+            50% {
+                transform: scale(1.3) rotate(3deg);
+                filter: blur(0);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
         }
 
         /* ============================================
@@ -1924,9 +1984,52 @@
     <!-- ANIMAÇÃO DE CONTAGEM REGRESSIVA (INÍCIO) -->
     <!-- ============================================ -->
     <div id="start-animation" class="start-animation-overlay">
+        <!-- Grade de Largada (Grid de Corrida) -->
+        <div class="starting-grid" id="starting-grid">
+            <div class="grid-position">
+                <span class="position-number">1</span>
+                <span class="avatar">🏎️</span>
+            </div>
+            <div class="grid-position">
+                <span class="position-number">2</span>
+                <span class="avatar">🏍️</span>
+            </div>
+            <div class="grid-position">
+                <span class="position-number">3</span>
+                <span class="avatar">🚕</span>
+            </div>
+            <div class="grid-position">
+                <span class="position-number">4</span>
+                <span class="avatar">🚗</span>
+            </div>
+            <div class="grid-position">
+                <span class="position-number">5</span>
+                <span class="avatar">🛵</span>
+            </div>
+        </div>
+
+        <!-- Semáforo de Corrida -->
+        <div class="traffic-light">
+            <div class="light red" id="light-red"></div>
+            <div class="light yellow" id="light-yellow"></div>
+            <div class="light green" id="light-green"></div>
+        </div>
+
+        <!-- Container da contagem -->
         <div class="countdown-container">
             <div id="countdown-number" class="countdown-number">3</div>
             <div id="countdown-text" class="countdown-text">PREPARAR?</div>
+        </div>
+
+        <!-- Carros correndo na animação -->
+        <div class="racing-cars-animation" id="racing-cars-container"></div>
+
+        <!-- Pit crew animado -->
+        <div class="pit-crew">
+            <div class="crew-member">🔧</div>
+            <div class="crew-member">⛽</div>
+            <div class="crew-member">🛞</div>
+            <div class="crew-member">🏁</div>
         </div>
     </div>
 
@@ -1959,12 +2062,7 @@
             </div>
             <div class="logo-99-tagline">para Empresas</div>
 
-            <!-- Ícone Pasta - Gestão Corporativa -->
-            <div class="icon-99">
-                <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>
-            </div>
-
-            <div style="font-size: 1.8rem; font-weight: 800; color: var(--azul-principal); margin: 10px 0 10px;">Quiz</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--azul-principal); margin: 20px 0 10px;">Quiz</div>
             <div style="font-size: 1rem; color: #666; margin-bottom: 40px;">Teste seus conhecimentos</div>
 
             <div class="card-grid" style="margin: 0 auto;">
@@ -2020,7 +2118,10 @@
     <div id="admin-login" class="screen">
         <div class="template-card">
             <div style="text-align: center; margin-bottom: 30px;">
-                <div style="font-size: 2.5rem; margin-bottom: 10px;">👤</div>
+                <!-- Ícone Pasta -->
+                <div class="icon-99">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>
+                </div>
                 <div style="font-size: 1.5rem; font-weight: 800; color: var(--azul-principal);">Área do Organizador</div>
                 <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">Acesso restrito para administradores</div>
             </div>
@@ -2154,7 +2255,13 @@
     <div id="admin-dashboard" class="screen">
         <div class="admin-panel">
             <div class="admin-header">
-                <div class="admin-title">👑 Criar Novo Quiz</div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- Ícone Gráfico de Barras -->
+                    <div class="icon-99 icon-small" style="margin: 0;">
+                        <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
+                    </div>
+                    <div class="admin-title">Criar Novo Quiz</div>
+                </div>
                 <button class="btn btn-secondary btn-small" onclick="logoutAdmin()">Sair</button>
             </div>
 
@@ -2365,6 +2472,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
 </body>
 </html>

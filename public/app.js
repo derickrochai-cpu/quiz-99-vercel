@@ -72,12 +72,11 @@ function handleGameUpdate(data, role) {
 
             // Se temos uma nova pergunta (número diferente ou ID diferente)
             if (isNewQuestion) {
-                // Verificar se é primeira pergunta e timer ainda não começou
-                if (data.question.questionNumber === 1 && data.timerNotStarted) {
-                    // Primeira pergunta com timer delay - mostrar animação!
-                    if (!hasShownStartAnimation) {
-                        playStartAnimation(currentGame.code, 'player');
-                    }
+                // Verificar se é primeira pergunta e ainda não mostramos a animação
+                if (data.question.questionNumber === 1 && !hasShownStartAnimation) {
+                    console.log('[handleGameUpdate] Primeira pergunta - iniciando animação!');
+                    // Primeira pergunta - mostrar animação de countdown
+                    playStartAnimation(currentGame.code, 'player');
                     // Não mostrar a tela de jogo ainda - continuar na animação/espera
                     return;
                 }
@@ -85,6 +84,7 @@ function handleGameUpdate(data, role) {
                 showingRanking = false; // Resetar flag
                 currentQuestion = data.question;
                 hasAnsweredCurrent = false;
+                console.log('[handleGameUpdate] Mostrando tela do jogo, pergunta:', data.question.questionNumber);
                 showScreen('game-screen');
                 renderPlayerQuestion(data.question);
             }
@@ -988,77 +988,145 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Animação de contagem regressiva no início do jogo
 async function playStartAnimation(gameCode, role) {
+    console.log('[playStartAnimation] Iniciando animação para:', role);
+
     const overlay = document.getElementById('start-animation');
     const numberEl = document.getElementById('countdown-number');
     const textEl = document.getElementById('countdown-text');
+    const racingContainer = document.getElementById('racing-cars-container');
 
-    // NÃO parar o polling - precisamos continuar recebendo updates
-    // O polling continua rodando em background
+    if (!overlay || !numberEl || !textEl) {
+        console.error('[playStartAnimation] Elementos não encontrados!');
+        hasShownStartAnimation = true;
+        return;
+    }
 
+    // Reset do estado da animação
+    hasShownStartAnimation = false;
+
+    // Limpar carros anteriores
+    if (racingContainer) {
+        racingContainer.innerHTML = '';
+    }
+
+    // Resetar estilos
+    numberEl.style.fontSize = '';
+    numberEl.style.display = 'block';
+
+    // Mostrar overlay
     overlay.classList.add('active');
+    console.log('[playStartAnimation] Overlay ativado');
 
-    const messages = ['READY?', 'SET...', 'GO!'];
-    const numbers = ['3', '2', '1', 'GO!'];
+    // Textos em português
+    const messages = ['PREPARAR?', 'AJUSTAR...', 'VAI!'];
+    const numbers = ['3', '2', '1'];
 
-    for (let i = 0; i < 4; i++) {
-        // Reset animation
+    // CONTAGEM 3-2-1
+    for (let i = 0; i < 3; i++) {
+        console.log(`[playStartAnimation] Contagem: ${numbers[i]}`);
+
+        // Reset animation - forçar reflow
         numberEl.style.animation = 'none';
-        numberEl.offsetHeight; // Trigger reflow
-        numberEl.style.animation = 'countdown_pop 1s ease-out';
+        void numberEl.offsetWidth; // Trigger reflow
+        numberEl.style.animation = 'countdown_pop 0.8s ease-out';
 
-        if (i < 3) {
-            numberEl.textContent = numbers[i];
-            textEl.textContent = messages[i] || '';
-            addRacingCars(i);
-        } else {
-            // GO!
-            numberEl.textContent = '';
-            numberEl.style.fontSize = '12rem';
-            textEl.innerHTML = '<div class="go-text">GO!</div>';
-            createGoEffect();
-        }
+        numberEl.textContent = numbers[i];
+        textEl.textContent = messages[i];
 
+        // Adicionar carros correndo
+        addRacingCars(i);
+
+        // Aguardar 1 segundo entre cada número
         await new Promise(r => setTimeout(r, 1000));
     }
 
-    // Aguardar mais um pouco para o efeito do GO
-    await new Promise(r => setTimeout(r, 800));
+    // GO! / VAI!
+    console.log('[playStartAnimation] GO!');
 
+    // Efeito especial do GO
+    numberEl.style.display = 'none';
+    textEl.innerHTML = '<div class="go-text">VAI!</div>';
+
+    // Criar efeito de flash verde
+    createGoEffect();
+
+    // Adicionar carros extras no GO
+    addRacingCars(3);
+
+    // Aguardar o efeito do GO
+    await new Promise(r => setTimeout(r, 1200));
+
+    // Esconder overlay
     overlay.classList.remove('active');
+    console.log('[playStartAnimation] Overlay escondido');
+
+    // Reset elementos para próxima vez
+    numberEl.style.display = 'block';
+    numberEl.textContent = '3';
+    textEl.textContent = 'PREPARAR?';
+
     hasShownStartAnimation = true;
-    // O polling continua, e o próximo poll vai mostrar a tela do jogo quando timer começar
+    console.log('[playStartAnimation] Animação completa!');
 }
 
 // Adicionar carros correndo na animação de início
 function addRacingCars(countdownIndex) {
-    const container = document.querySelector('.racing-cars-animation');
+    const container = document.getElementById('racing-cars-container');
+    if (!container) return;
 
-    // Criar mais carros para cada número
-    const cars = ['🚕', '🏍️', '🚗', '🛵', '🚙'];
+    console.log('[addRacingCars] Adicionando carros para contagem:', countdownIndex);
+
+    // Carros diferentes para cada fase da contagem
+    const carSets = [
+        ['🚕', '🏍️'],      // 3
+        ['🚗', '🛵', '🚙'], // 2
+        ['🏎️', '🚕', '🏍️', '🚗'], // 1
+        ['🚕', '🏍️', '🚗', '🛵', '🚙', '🏎️'] // GO!
+    ];
+
+    const cars = carSets[countdownIndex] || carSets[0];
+
     cars.forEach((car, i) => {
         const el = document.createElement('div');
         el.className = 'race-car';
         el.textContent = car;
-        el.style.bottom = (10 + i * 8) + '%';
-        el.style.left = (10 + i * 15) + '%';
-        el.style.animationDuration = (0.8 + Math.random() * 0.4) + 's';
-        el.style.animationDelay = (i * 0.05) + 's';
-        el.style.fontSize = (3 + Math.random() * 2) + 'rem';
+
+        // Posições variadas
+        const bottomPos = 20 + (i * 15) + (Math.random() * 10);
+        const delay = i * 0.1;
+        const duration = 1.5 + Math.random() * 0.5;
+        const size = 3 + Math.random() * 1.5;
+
+        el.style.cssText = `
+            position: absolute;
+            bottom: ${bottomPos}%;
+            left: -100px;
+            font-size: ${size}rem;
+            animation: race_start ${duration}s ease-out forwards;
+            animation-delay: ${delay}s;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+            z-index: 5;
+        `;
 
         container.appendChild(el);
 
-        // Remover após animação
+        // Remover após animação completar
         setTimeout(() => {
-            if (el.parentNode) el.parentNode.removeChild(el);
-        }, 1200);
+            if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+        }, (duration + delay) * 1000 + 100);
     });
 }
 
 // Efeito especial do GO!
 function createGoEffect() {
     const container = document.getElementById('start-animation');
+    if (!container) return;
 
-    // Flash de luz verde
+    console.log('[createGoEffect] Criando efeito GO!');
+
+    // Flash de luz verde forte
     const flash = document.createElement('div');
     flash.style.cssText = `
         position: absolute;
@@ -1066,13 +1134,92 @@ function createGoEffect() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: radial-gradient(circle, rgba(0,255,0,0.3) 0%, transparent 70%);
-        animation: fadeOut 0.5s ease-out forwards;
+        background: radial-gradient(circle, rgba(0,255,0,0.5) 0%, rgba(0,255,0,0.2) 40%, transparent 70%);
+        animation: fadeOut 0.8s ease-out forwards;
         pointer-events: none;
+        z-index: 100;
     `;
     container.appendChild(flash);
 
-    setTimeout(() => flash.remove(), 500);
+    // Ondas de choque
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            const shockwave = document.createElement('div');
+            shockwave.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 50px;
+                height: 50px;
+                border: 4px solid #00FF00;
+                border-radius: 50%;
+                animation: shockwave_expand 1s ease-out forwards;
+                pointer-events: none;
+                z-index: 99;
+            `;
+            container.appendChild(shockwave);
+            setTimeout(() => shockwave.remove(), 1000);
+        }, i * 200);
+    }
+
+    // Partículas de celebração
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            const angle = (Math.PI * 2 * i) / 20;
+            const distance = 100 + Math.random() * 100;
+
+            particle.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 8px;
+                height: 8px;
+                background: ${Math.random() > 0.5 ? '#00FF00' : '#F5C500'};
+                border-radius: 50%;
+                animation: particle_burst 0.8s ease-out forwards;
+                pointer-events: none;
+                z-index: 98;
+                --angle: ${angle}rad;
+                --distance: ${distance}px;
+            `;
+            container.appendChild(particle);
+            setTimeout(() => particle.remove(), 800);
+        }, i * 30);
+    }
+
+    // Adicionar keyframes se não existirem
+    if (!document.getElementById('go-effect-styles')) {
+        const style = document.createElement('style');
+        style.id = 'go-effect-styles';
+        style.textContent = `
+            @keyframes fadeOut {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            @keyframes shockwave_expand {
+                0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(15); opacity: 0; }
+            }
+            @keyframes particle_burst {
+                0% {
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(
+                        calc(-50% + cos(var(--angle)) * var(--distance)),
+                        calc(-50% + sin(var(--angle)) * var(--distance))
+                    ) scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    setTimeout(() => flash.remove(), 800);
 }
 
 // ============================================
