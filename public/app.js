@@ -661,13 +661,29 @@ async function adminLogin() {
         // Verificar se a tela existe
         const dashboard = document.getElementById('admin-dashboard');
         console.log('[adminLogin] Elemento admin-dashboard:', dashboard);
+        console.log('[adminLogin] Dashboard innerHTML (primeiros 200 chars):', dashboard?.innerHTML?.substring(0, 200));
+        console.log('[adminLogin] Dashboard style:', dashboard?.style?.cssText);
+        console.log('[adminLogin] Dashboard display computado:', window.getComputedStyle(dashboard).display);
 
-        showScreen('admin-dashboard');
+        try {
+            showScreen('admin-dashboard');
+            console.log('[adminLogin] showScreen chamado com sucesso');
+        } catch (e) {
+            console.error('[adminLogin] ERRO ao chamar showScreen:', e);
+        }
 
         // Verificar se a tela ficou ativa
         setTimeout(() => {
             const isActive = dashboard?.classList.contains('active');
+            const display = window.getComputedStyle(dashboard).display;
+            const visibility = window.getComputedStyle(dashboard).visibility;
+            const opacity = window.getComputedStyle(dashboard).opacity;
             console.log('[adminLogin] Dashboard está ativo:', isActive);
+            console.log('[adminLogin] Dashboard display:', display);
+            console.log('[adminLogin] Dashboard visibility:', visibility);
+            console.log('[adminLogin] Dashboard opacity:', opacity);
+            console.log('[adminLogin] Dashboard offsetHeight:', dashboard?.offsetHeight);
+            console.log('[adminLogin] Dashboard offsetWidth:', dashboard?.offsetWidth);
         }, 100);
 
     } catch (err) {
