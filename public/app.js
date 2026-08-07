@@ -26,11 +26,25 @@ const MOTO_99 = '🏍️';
 // NAVIGATION
 // ============================================
 function showScreen(screenId) {
+    console.log('[showScreen] Tentando mostrar tela:', screenId);
+
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
+
     const target = document.getElementById(screenId);
-    if (target) target.classList.add('active');
+    console.log('[showScreen] Elemento encontrado:', target);
+
+    if (target) {
+        target.classList.add('active');
+        console.log('[showScreen] Tela ativada com sucesso:', screenId);
+
+        // Scroll para o topo
+        window.scrollTo(0, 0);
+    } else {
+        console.error('[showScreen] Tela não encontrada:', screenId);
+        alert('Erro: Tela ' + screenId + ' não encontrada!');
+    }
 }
 
 // ============================================
@@ -604,6 +618,8 @@ async function adminLogin() {
     const email = document.getElementById('admin-email').value.trim();
     const password = document.getElementById('admin-password').value;
 
+    console.log('[adminLogin] Tentando login com:', email);
+
     if (!email || !password) {
         alert('Preencha email e senha!');
         return;
@@ -617,6 +633,8 @@ async function adminLogin() {
         });
 
         const data = await response.json();
+        console.log('[adminLogin] Resposta:', data);
+
         if (!response.ok) {
             alert('Credenciais inválidas!');
             return;
@@ -626,9 +644,23 @@ async function adminLogin() {
         localStorage.setItem('adminToken', adminToken);
         questionsList = [];
         renderQuestionsList();
+
+        console.log('[adminLogin] Token salvo, mudando para admin-dashboard');
+
+        // Verificar se a tela existe
+        const dashboard = document.getElementById('admin-dashboard');
+        console.log('[adminLogin] Elemento admin-dashboard:', dashboard);
+
         showScreen('admin-dashboard');
 
+        // Verificar se a tela ficou ativa
+        setTimeout(() => {
+            const isActive = dashboard?.classList.contains('active');
+            console.log('[adminLogin] Dashboard está ativo:', isActive);
+        }, 100);
+
     } catch (err) {
+        console.error('[adminLogin] Erro:', err);
         alert('Erro no login: ' + err.message);
     }
 }
@@ -1100,8 +1132,24 @@ function adminBackToDashboard() {
 // INIT
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[INIT] DOM carregado');
+
     const saved = localStorage.getItem('adminToken');
-    if (saved) adminToken = saved;
+    if (saved) {
+        console.log('[INIT] Token admin encontrado no localStorage');
+        adminToken = saved;
+    }
+
+    // Verificar todas as telas disponíveis
+    const screens = document.querySelectorAll('.screen');
+    console.log('[INIT] Total de telas encontradas:', screens.length);
+    screens.forEach(screen => {
+        console.log('[INIT] Tela:', screen.id);
+    });
+
+    // Verificar especificamente o admin-dashboard
+    const adminDashboard = document.getElementById('admin-dashboard');
+    console.log('[INIT] Admin dashboard existe:', !!adminDashboard);
 });
 
 // ============================================
