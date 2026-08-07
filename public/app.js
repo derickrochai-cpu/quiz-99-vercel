@@ -32,6 +32,8 @@ function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
         screen.style.display = 'none';
+        screen.style.visibility = 'hidden';
+        screen.style.opacity = '0';
     });
 
     const target = document.getElementById(screenId);
@@ -40,12 +42,38 @@ function showScreen(screenId) {
     if (target) {
         target.classList.add('active');
 
-        // Para admin-dashboard, usar display block
+        // Resetar todos os estilos que possam estar escondendo
+        target.style.visibility = 'visible';
+        target.style.opacity = '1';
+        target.style.position = 'fixed';
+        target.style.top = '0';
+        target.style.left = '0';
+        target.style.width = '100%';
+        target.style.height = '100%';
+        target.style.zIndex = '9999';
+        target.style.overflow = 'auto';
+        target.style.backgroundColor = '#F1F1F1';
+
+        // Para admin-dashboard
         if (screenId === 'admin-dashboard') {
             target.style.display = 'block';
-            console.log('[showScreen] Admin-dashboard ativado como block');
+            target.style.padding = '20px';
+            console.log('[showScreen] Admin-dashboard ativado com estilos forçados');
+
+            // Forçar o container interno também
+            const innerDiv = target.querySelector('div');
+            if (innerDiv) {
+                innerDiv.style.display = 'block';
+                innerDiv.style.width = '100%';
+                innerDiv.style.maxWidth = '800px';
+                innerDiv.style.margin = '0 auto';
+                innerDiv.style.minHeight = '100vh';
+            }
         } else {
             target.style.display = 'flex';
+            target.style.flexDirection = 'column';
+            target.style.alignItems = 'center';
+            target.style.justifyContent = 'center';
         }
 
         console.log('[showScreen] Tela ativada com sucesso:', screenId);
