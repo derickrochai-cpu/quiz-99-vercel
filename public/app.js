@@ -1465,34 +1465,8 @@ function createPodiumCars(container) {
     console.log('[createPodiumCars] Carros 99 adicionados ao pódio');
 }
 
-// Criar elementos de apoio em cenários específicos
-function addTemplateElementsToScreen(screenId) {
-    const screen = document.getElementById(screenId);
-    if (!screen) return;
-
-    // Verificar se já tem elementos
-    if (screen.querySelector('.template-element-visible')) return;
-
-    // Elementos disponíveis
-    const elements = [
-        { src: 'elemento-99-1.png', style: 'top: 5%; right: 3%; width: 250px;' },
-        { src: 'elemento-99-2.png', style: 'bottom: 10%; left: 2%; width: 200px;' },
-        { src: 'elemento-99-3.png', style: 'top: 20%; right: 5%; width: 180px;' },
-        { src: 'elemento-99-4.png', style: 'bottom: 15%; left: 4%; width: 220px;' }
-    ];
-
-    // Adicionar 2 elementos aleatórios
-    const shuffled = elements.sort(() => 0.5 - Math.random());
-    shuffled.slice(0, 2).forEach(el => {
-        const img = document.createElement('img');
-        img.src = el.src;
-        img.className = 'template-element-visible';
-        img.style.cssText = el.style;
-        img.alt = '';
-        img.onerror = () => { if (img.parentNode) img.parentNode.removeChild(img); };
-        screen.insertBefore(img, screen.firstChild);
-    });
-}
+// REMOVIDO: Elementos de apoio do template foram removidos conforme solicitação
+// Agora apenas os carros 99 são usados como elementos visuais
 
 // Criar estrelas de celebração
 function createPodiumStars() {
