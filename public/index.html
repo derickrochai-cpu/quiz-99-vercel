@@ -1118,6 +1118,59 @@
         }
 
         /* ============================================
+           CARROS 99 NO JOGO (BACKGROUND DAS PERGUNTAS)
+           ============================================ */
+
+        .game-background-cars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .game-car {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            opacity: 0.15;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+        }
+
+        .game-car.car-bg-1 {
+            top: 15%;
+            left: -250px;
+            animation: game_car_drive_1 25s linear infinite;
+        }
+
+        .game-car.car-bg-2 {
+            top: 65%;
+            right: -250px;
+            animation: game_car_drive_2 30s linear infinite;
+            animation-delay: 5s;
+        }
+
+        .game-car.car-bg-3 {
+            top: 40%;
+            left: -250px;
+            animation: game_car_drive_1 35s linear infinite;
+            animation-delay: 12s;
+        }
+
+        @keyframes game_car_drive_1 {
+            0% { transform: translateX(0) scale(1); }
+            100% { transform: translateX(calc(100vw + 500px)) scale(1); }
+        }
+
+        @keyframes game_car_drive_2 {
+            0% { transform: translateX(0) scale(1) rotateY(180deg); }
+            100% { transform: translateX(calc(-100vw - 500px)) scale(1) rotateY(180deg); }
+        }
+
+        /* ============================================
            ANIMAÇÃO DE INÍCIO DO JOGO
            ============================================ */
 
@@ -1240,39 +1293,75 @@
 
         .racing-cars-animation {
             position: absolute;
-            bottom: 15%;
+            bottom: 10%;
             width: 100%;
-            height: 150px;
+            height: 200px;
             pointer-events: none;
             overflow: hidden;
         }
 
-        .race-car {
+        /* Carros 99 na animação de contagem regressiva */
+        .race-car-99 {
             position: absolute;
-            font-size: 4rem;
-            animation: race_start 2s ease-out forwards;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            width: 160px;
+            height: auto;
+            animation: race_start_99 2.5s ease-out forwards;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6));
         }
 
-        .race-car:nth-child(1) { left: 5%; animation-delay: 0s; bottom: 60%; }
-        .race-car:nth-child(2) { left: 25%; animation-delay: 0.15s; bottom: 30%; }
-        .race-car:nth-child(3) { left: 45%; animation-delay: 0.3s; bottom: 70%; }
-        .race-car:nth-child(4) { left: 65%; animation-delay: 0.1s; bottom: 40%; }
-        .race-car:nth-child(5) { left: 85%; animation-delay: 0.25s; bottom: 50%; }
+        .race-car-99:nth-child(1) {
+            left: -180px;
+            bottom: 60%;
+            animation-delay: 0s;
+            animation-duration: 2s;
+        }
 
-        @keyframes race_start {
+        .race-car-99:nth-child(2) {
+            left: -180px;
+            bottom: 30%;
+            animation-delay: 0.2s;
+            animation-duration: 2.2s;
+        }
+
+        .race-car-99:nth-child(3) {
+            left: -180px;
+            bottom: 70%;
+            animation-delay: 0.4s;
+            animation-duration: 1.8s;
+        }
+
+        .race-car-99:nth-child(4) {
+            left: -180px;
+            bottom: 40%;
+            animation-delay: 0.1s;
+            animation-duration: 2.3s;
+        }
+
+        .race-car-99:nth-child(5) {
+            left: -180px;
+            bottom: 55%;
+            animation-delay: 0.3s;
+            animation-duration: 2.1s;
+        }
+
+        @keyframes race_start_99 {
             0% {
-                transform: translateX(-100vw) scale(0.5);
+                transform: translateX(0) scale(0.8);
                 opacity: 0;
             }
-            20% {
+            15% {
                 opacity: 1;
-                transform: translateX(-80vw) scale(1);
+                transform: translateX(20vw) scale(1);
             }
             100% {
-                transform: translateX(100vw) scale(1.1);
+                transform: translateX(calc(100vw + 200px)) scale(1.1);
                 opacity: 1;
             }
+        }
+
+        /* Fallback para emojis removido - agora só usamos imagens reais */
+        .race-car {
+            display: none;
         }
 
         .go-text {
@@ -1372,68 +1461,97 @@
 
         .floating-car-99 {
             position: absolute;
-            width: 120px;
+            width: 280px;
             height: auto;
-            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
-            opacity: 0.9;
+            filter: drop-shadow(0 15px 40px rgba(0,0,0,0.6));
+            opacity: 1;
+            transition: transform 0.3s ease;
         }
 
-        /* Carro Pop animado */
+        /* Efeito de brilho amarelo nos carros */
+        .floating-car-99::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(ellipse at center, rgba(255,221,0,0.2) 0%, transparent 70%);
+            z-index: -1;
+            animation: car_glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes car_glow {
+            from { opacity: 0.5; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* Carro Pop animado - maior e centralizado */
         .floating-car-99.pop {
-            animation: float_car_pop 15s ease-in-out infinite;
+            animation: float_car_pop 18s ease-in-out infinite;
+            top: 10%;
+            left: -300px;
+            width: 320px;
         }
 
         @keyframes float_car_pop {
-            0% { transform: translate(-20%, 20%) rotate(-5deg); opacity: 0; }
-            10% { opacity: 0.9; }
-            50% { transform: translate(120%, 15%) rotate(5deg); }
-            90% { opacity: 0.9; }
-            100% { transform: translate(140%, 20%) rotate(-5deg); opacity: 0; }
+            0% { transform: translateX(0) translateY(0) rotate(-3deg) scale(1); }
+            25% { transform: translateX(30vw) translateY(20px) rotate(2deg) scale(1.05); }
+            50% { transform: translateX(60vw) translateY(-10px) rotate(-2deg) scale(1); }
+            75% { transform: translateX(90vw) translateY(15px) rotate(3deg) scale(1.05); }
+            100% { transform: translateX(120vw) translateY(0) rotate(-3deg) scale(1); }
         }
 
         /* Carro Taxi animado */
         .floating-car-99.taxi {
-            animation: float_car_taxi 12s ease-in-out infinite;
-            animation-delay: 2s;
-            width: 140px;
+            animation: float_car_taxi 16s ease-in-out infinite;
+            animation-delay: 3s;
+            top: 35%;
+            right: -350px;
+            width: 340px;
         }
 
         @keyframes float_car_taxi {
-            0% { transform: translate(120%, 40%) rotate(8deg); opacity: 0; }
-            10% { opacity: 0.9; }
-            50% { transform: translate(-30%, 45%) rotate(-8deg); }
-            90% { opacity: 0.9; }
-            100% { transform: translate(-50%, 40%) rotate(8deg); opacity: 0; }
+            0% { transform: translateX(0) translateY(0) rotate(5deg) scale(1); }
+            25% { transform: translateX(-35vw) translateY(-25px) rotate(-3deg) scale(1.08); }
+            50% { transform: translateX(-70vw) translateY(10px) rotate(4deg) scale(1); }
+            75% { transform: translateX(-100vw) translateY(-15px) rotate(-2deg) scale(1.08); }
+            100% { transform: translateX(-130vw) translateY(0) rotate(5deg) scale(1); }
         }
 
         /* Carro Comfort animado */
         .floating-car-99.comfort {
-            animation: float_car_comfort 18s ease-in-out infinite;
-            animation-delay: 4s;
-            width: 130px;
+            animation: float_car_comfort 20s ease-in-out infinite;
+            animation-delay: 6s;
+            top: 55%;
+            left: -320px;
+            width: 330px;
         }
 
         @keyframes float_car_comfort {
-            0% { transform: translate(-10%, 60%) rotate(3deg); opacity: 0; }
-            10% { opacity: 0.9; }
-            60% { transform: translate(130%, 55%) rotate(-3deg); }
-            90% { opacity: 0.9; }
-            100% { transform: translate(150%, 60%) rotate(3deg); opacity: 0; }
+            0% { transform: translateX(0) translateY(0) rotate(-2deg) scale(1); }
+            20% { transform: translateX(25vw) translateY(-20px) rotate(3deg) scale(1.06); }
+            40% { transform: translateX(50vw) translateY(15px) rotate(-4deg) scale(1); }
+            60% { transform: translateX(75vw) translateY(-10px) rotate(2deg) scale(1.06); }
+            80% { transform: translateX(100vw) translateY(20px) rotate(-3deg) scale(1); }
+            100% { transform: translateX(130vw) translateY(0) rotate(-2deg) scale(1); }
         }
 
         /* Carro Eyeball (99 Empresas) */
         .floating-car-99.eyeball {
-            animation: float_car_eyeball 20s ease-in-out infinite;
-            animation-delay: 1s;
-            width: 100px;
+            animation: float_car_eyeball 22s ease-in-out infinite;
+            animation-delay: 1.5s;
+            top: 75%;
+            right: -280px;
+            width: 300px;
         }
 
         @keyframes float_car_eyeball {
-            0% { transform: translate(130%, 75%) scale(0.8) rotate(-10deg); opacity: 0; }
-            10% { opacity: 0.85; }
-            50% { transform: translate(-20%, 70%) scale(1) rotate(10deg); }
-            90% { opacity: 0.85; }
-            100% { transform: translate(-40%, 75%) scale(0.8) rotate(-10deg); opacity: 0; }
+            0% { transform: translateX(0) translateY(0) rotate(4deg) scale(1); }
+            25% { transform: translateX(-30vw) translateY(25px) rotate(-4deg) scale(1.07); }
+            50% { transform: translateX(-60vw) translateY(-15px) rotate(3deg) scale(1); }
+            75% { transform: translateX(-90vw) translateY(10px) rotate(-5deg) scale(1.07); }
+            100% { transform: translateX(-120vw) translateY(0) rotate(4deg) scale(1); }
         }
 
         /* Estrelas de brilho */
@@ -2284,6 +2402,13 @@
     <!-- GAME SCREEN (PLAYER) -->
     <!-- ============================================ -->
     <div id="game-screen" class="screen">
+        <!-- Carros 99 decorativos no background -->
+        <div class="game-background-cars" id="game-bg-cars">
+            <img src="car-pop.png" class="game-car car-bg-1" alt="">
+            <img src="car-taxi.png" class="game-car car-bg-2" alt="">
+            <img src="car-comfort.png" class="game-car car-bg-3" alt="">
+        </div>
+
         <div class="question-container">
             <div class="timer-bar">
                 <div class="timer-progress" id="timer-bar"></div>
@@ -2611,6 +2736,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=15"></script>
 </body>
 </html>

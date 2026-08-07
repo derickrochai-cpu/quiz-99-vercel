@@ -1191,54 +1191,63 @@ async function playStartAnimation(gameCode, role) {
     console.log('[playStartAnimation] Animação completa!');
 }
 
-// Adicionar carros correndo na animação de início
+// Adicionar carros 99 correndo na animação de início
 function addRacingCars(countdownIndex) {
     const container = document.getElementById('racing-cars-container');
     if (!container) return;
 
-    console.log('[addRacingCars] Adicionando carros para contagem:', countdownIndex);
+    console.log('[addRacingCars] Adicionando carros 99 para contagem:', countdownIndex);
 
-    // Carros diferentes para cada fase da contagem
-    const carSets = [
-        ['🚕', '🏍️'],      // 3
-        ['🚗', '🛵', '🚙'], // 2
-        ['🏎️', '🚕', '🏍️', '🚗'], // 1
-        ['🚕', '🏍️', '🚗', '🛵', '🚙', '🏎️'] // GO!
+    // Imagens dos carros 99
+    const carImages = [
+        'car-pop.png',
+        'car-taxi.png',
+        'car-comfort.png',
+        'car-eyeball.png'
     ];
 
-    const cars = carSets[countdownIndex] || carSets[0];
+    // Número de carros baseado na contagem
+    const carCount = countdownIndex === 3 ? 5 : 2 + countdownIndex; // GO! tem mais carros
 
-    cars.forEach((car, i) => {
-        const el = document.createElement('div');
-        el.className = 'race-car';
-        el.textContent = car;
+    for (let i = 0; i < carCount; i++) {
+        const carImg = carImages[i % carImages.length];
+        const img = document.createElement('img');
+        img.src = carImg;
+        img.className = 'race-car-99';
+        img.alt = '';
 
         // Posições variadas
-        const bottomPos = 20 + (i * 15) + (Math.random() * 10);
-        const delay = i * 0.1;
-        const duration = 1.5 + Math.random() * 0.5;
-        const size = 3 + Math.random() * 1.5;
+        const bottomPos = 25 + (i * 12) + (Math.random() * 8);
+        const delay = i * 0.15;
+        const duration = 2 + Math.random() * 0.5;
 
-        el.style.cssText = `
+        img.style.cssText = `
             position: absolute;
             bottom: ${bottomPos}%;
-            left: -100px;
-            font-size: ${size}rem;
-            animation: race_start ${duration}s ease-out forwards;
+            left: -200px;
+            width: 140px;
+            animation: race_start_99 ${duration}s ease-out forwards;
             animation-delay: ${delay}s;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6));
             z-index: 5;
         `;
 
-        container.appendChild(el);
+        // Se imagem falhar, não mostrar nada
+        img.onerror = () => {
+            if (img.parentNode) img.parentNode.removeChild(img);
+        };
+
+        container.appendChild(img);
 
         // Remover após animação completar
         setTimeout(() => {
-            if (el && el.parentNode) {
-                el.parentNode.removeChild(el);
+            if (img && img.parentNode) {
+                img.parentNode.removeChild(img);
             }
-        }, (duration + delay) * 1000 + 100);
-    });
+        }, (duration + delay) * 1000 + 200);
+    }
+
+    console.log(`[addRacingCars] ${carCount} carros 99 adicionados`);
 }
 
 // Efeito especial do GO!
@@ -1411,63 +1420,49 @@ function createSparkles(container) {
 
 // Criar carros 99 flutuantes na animação do pódio
 function createPodiumCars(container) {
+    console.log('[createPodiumCars] Criando carros 99 flutuantes');
+
     // Container para carros flutuantes
     const floatingContainer = document.getElementById('podium-floating-cars');
-    if (floatingContainer) {
-        floatingContainer.innerHTML = ''; // Limpar anteriores
-
-        // Array com os carros 99 e suas classes
-        const cars99 = [
-            { src: 'car-pop.png', class: 'pop', alt: '99 Pop' },
-            { src: 'car-taxi.png', class: 'taxi', alt: '99 Taxi' },
-            { src: 'car-comfort.png', class: 'comfort', alt: '99 Comfort' },
-            { src: 'car-eyeball.png', class: 'eyeball', alt: '99 Empresas' }
-        ];
-
-        cars99.forEach((car, i) => {
-            const img = document.createElement('img');
-            img.src = car.src;
-            img.alt = car.alt;
-            img.className = `floating-car-99 ${car.class}`;
-            img.style.animationDelay = `${i * 0.5}s`;
-
-            // Adicionar evento de erro caso a imagem não carregue
-            img.onerror = () => {
-                // Fallback para emoji se imagem falhar
-                img.style.display = 'none';
-                const fallback = document.createElement('div');
-                fallback.className = `podium-car ${car.class}`;
-                fallback.textContent = ['🚕', '🏍️', '🚗', '🛵'][i];
-                fallback.style.left = (15 + i * 20) + '%';
-                container.appendChild(fallback);
-            };
-
-            floatingContainer.appendChild(img);
-        });
+    if (!floatingContainer) {
+        console.error('[createPodiumCars] Container não encontrado');
+        return;
     }
 
-    // Carros emojis como fallback/efeito adicional
-    const vehicles = ['🚕', '🏍️', '🚗', '🛵'];
-    vehicles.forEach((v, i) => {
-        const car = document.createElement('div');
-        car.className = 'podium-car';
-        car.textContent = v;
-        car.style.left = (15 + i * 25) + '%';
-        car.style.animationDelay = (i * 0.3) + 's';
-        car.style.opacity = '0.5'; // Mais transparente já que temos as imagens reais
-        container.appendChild(car);
+    floatingContainer.innerHTML = ''; // Limpar anteriores
 
-        // Adicionar fumaça
-        setInterval(() => {
-            if (!car.parentNode) return;
-            const smoke = document.createElement('div');
-            smoke.className = 'smoke';
-            smoke.style.left = (parseInt(car.style.left) + 5) + '%';
-            smoke.style.bottom = '5%';
-            container.appendChild(smoke);
-            setTimeout(() => smoke.remove(), 1000);
-        }, 500 + i * 200);
+    // Array com os carros 99 e suas classes
+    const cars99 = [
+        { src: 'car-pop.png', class: 'pop', alt: '99 Pop' },
+        { src: 'car-taxi.png', class: 'taxi', alt: '99 Taxi' },
+        { src: 'car-comfort.png', class: 'comfort', alt: '99 Comfort' },
+        { src: 'car-eyeball.png', class: 'eyeball', alt: '99 Empresas' }
+    ];
+
+    cars99.forEach((car, i) => {
+        const img = document.createElement('img');
+        img.src = car.src;
+        img.alt = car.alt;
+        img.className = `floating-car-99 ${car.class}`;
+
+        // Forçar carregamento com timestamp para evitar cache
+        img.src = `${car.src}?v=${Date.now()}`;
+
+        // Evento quando imagem carrega
+        img.onload = () => {
+            console.log(`[createPodiumCars] Carro carregado: ${car.alt}`);
+        };
+
+        // Se imagem falhar, não mostrar nada (sem fallback de emoji)
+        img.onerror = () => {
+            console.log(`[createPodiumCars] Erro ao carregar: ${car.src}`);
+            img.style.display = 'none';
+        };
+
+        floatingContainer.appendChild(img);
     });
+
+    console.log('[createPodiumCars] Carros 99 adicionados ao pódio');
 }
 
 // Criar estrelas de celebração
