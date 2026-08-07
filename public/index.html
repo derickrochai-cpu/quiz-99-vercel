@@ -59,23 +59,41 @@
 
         .screen {
             display: none;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
         }
 
         .screen.active {
+            display: block;
+        }
+
+        /* Telas de quiz centralizadas */
+        #home-screen.screen.active,
+        #player-login.screen.active,
+        #admin-login.screen.active,
+        #waiting-screen.screen.active,
+        #game-screen.screen.active,
+        #ranking-screen.screen.active,
+        #podium-screen.screen.active {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        /* Exceção: Admin dashboard não deve centralizar conteúdo verticalmente */
+        /* Admin dashboard - fluxo normal */
         #admin-dashboard.screen.active {
             display: block !important;
-            padding-top: 80px;
+            min-height: 100vh;
+            padding: 20px;
             overflow-y: auto;
+        }
+
+        #admin-dashboard.screen.active .admin-content {
+            display: block;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .logo {
@@ -2649,7 +2667,7 @@
     <!-- ADMIN DASHBOARD (CREATE QUIZ) - VERSÃO SIMPLIFICADA -->
     <!-- ============================================ -->
     <div id="admin-dashboard" class="screen" style="background: #F1F1F1; display: none;">
-        <div style="width: 100%; max-width: 800px; margin: 0 auto; padding: 20px;">
+        <div style="width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh;">
             <!-- Header -->
             <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 4px solid #FFDD00; display: flex; justify-content: space-between; align-items: center;">
                 <h1 style="color: #212121; margin: 0; font-size: 1.8rem;">🎯 Criar Novo Quiz</h1>
