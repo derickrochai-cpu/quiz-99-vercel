@@ -1118,6 +1118,61 @@
         }
 
         /* ============================================
+           ELEMENTOS DE APOIO DO TEMPLATE 99
+           ============================================ */
+
+        .template-element {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.08;
+        }
+
+        .template-element.element-1 {
+            top: 5%;
+            right: -5%;
+            width: 400px;
+            animation: float_element 20s ease-in-out infinite;
+        }
+
+        .template-element.element-2 {
+            bottom: 10%;
+            left: -3%;
+            width: 350px;
+            animation: float_element 25s ease-in-out infinite reverse;
+        }
+
+        .template-element.element-3 {
+            top: 30%;
+            left: 2%;
+            width: 200px;
+            animation: float_element 18s ease-in-out infinite;
+            animation-delay: 5s;
+        }
+
+        .template-element.element-4 {
+            bottom: 20%;
+            right: 2%;
+            width: 250px;
+            animation: float_element 22s ease-in-out infinite reverse;
+            animation-delay: 3s;
+        }
+
+        @keyframes float_element {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            50% { transform: translateY(-20px) rotate(2deg) scale(1.02); }
+        }
+
+        /* Elementos mais visíveis em telas específicas */
+        .screen .template-element-visible {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.15;
+            max-width: 300px;
+        }
+
+        /* ============================================
            CARROS 99 NO JOGO (BACKGROUND DAS PERGUNTAS)
            ============================================ */
 
@@ -2278,6 +2333,14 @@
     <!-- ============================================ -->
     <div id="confetti-container" class="confetti-container"></div>
 
+    <!-- Elementos de apoio flutuantes (visíveis em todas as telas) -->
+    <div class="floating-elements">
+        <img src="elemento-99-1.png" class="template-element element-1" alt="">
+        <img src="elemento-99-2.png" class="template-element element-2" alt="">
+        <img src="elemento-99-3.png" class="template-element element-3" alt="">
+        <img src="elemento-99-4.png" class="template-element element-4" alt="">
+    </div>
+
     <!-- ============================================ -->
     <!-- HOME SCREEN -->
     <!-- ============================================ -->
@@ -2313,6 +2376,10 @@
     <!-- PLAYER LOGIN -->
     <!-- ============================================ -->
     <div id="player-login" class="screen">
+        <!-- Elementos de apoio do template -->
+        <img src="elemento-99-3.png" class="template-element-visible" style="top: 10%; right: 5%;" alt="">
+        <img src="elemento-99-4.png" class="template-element-visible" style="bottom: 15%; left: 3%; width: 200px;" alt="">
+
         <div class="template-card">
             <div style="text-align: center; margin-bottom: 30px;">
                 <!-- Ícone Agenda - Participação -->
@@ -2736,6 +2803,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=16"></script>
 </body>
 </html>
