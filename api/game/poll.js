@@ -24,7 +24,8 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Game not found' });
   }
 
-  // AUTO-ADVANCE: Se o tempo acabou, avançar automaticamente
+  // NOTA: Auto-advance removido - agora o admin controla manualmente
+  // O jogo permanece no estado atual até o admin chamar /api/game/next
   if (game.status === 'playing' && game.currentQuestion >= 0 && game.questions) {
     const currentQ = game.questions[game.currentQuestion];
     if (currentQ) {
@@ -40,11 +41,12 @@ module.exports = async (req, res) => {
 
       const timeLeft = Math.max(0, currentQ.time - elapsed);
 
-      // Se acabou o tempo, avançar automaticamente
+      // Se acabou o tempo na última pergunta, finalizar jogo automaticamente
+      // (apenas no último question, o resto é controlado pelo admin)
       if (timeLeft <= 0) {
         const nextQuestion = game.currentQuestion + 1;
 
-        if (nextQuestion >= game.questions.length) {
+        if (nextQuestion >= game.questions.length && game.status !== 'finished') {
           // FIM DO JOGO - Calcular resultados
           const scores = [];
           game.players.forEach(player => {
@@ -78,26 +80,8 @@ module.exports = async (req, res) => {
 
           // Recarregar o jogo atualizado
           game = await getGame(gameCode);
-        } else {
-          // PRÓXIMA PERGUNTA - Avançar automaticamente após 5 segundos de intervalo
-          const now = Date.now();
-          const lastQuestionEndedAt = new Date(game.questionStartedAt || game.updatedAt).getTime();
-          const currentQ = game.questions[game.currentQuestion];
-          const questionDuration = (currentQ?.time || 30) * 1000;
-          const timeSinceQuestionEnded = now - (lastQuestionEndedAt + questionDuration);
-
-          // Só avançar se já passou 5 segundos de intervalo (tempo para ver ranking)
-          if (timeSinceQuestionEnded >= 5000) {
-            await updateGame(gameCode, {
-              currentQuestion: nextQuestion,
-              timeLeft: game.questions[nextQuestion].time,
-              questionStartedAt: new Date().toISOString()
-            });
-
-            // Recarregar o jogo atualizado
-            game = await getGame(gameCode);
-          }
         }
+        // NOTA: Não avança automaticamente para próxima pergunta - admin controla manualmente
       }
     }
   }

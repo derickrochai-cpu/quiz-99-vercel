@@ -150,14 +150,31 @@ function handleGameUpdate(data, role) {
             return; // Não mostrar tela de jogo ainda
         }
 
+        // Verificar se o tempo acabou e precisamos mostrar o ranking intermediário
+        if (data.timeLeft === 0 && data.ranking && data.question) {
+            const isOnInterim = document.getElementById('admin-interim-ranking')?.classList.contains('active');
+            if (!isOnInterim) {
+                console.log('[handleGameUpdate] Tempo acabou - mostrando ranking intermediário');
+                showAdminInterimRanking(data);
+                return;
+            }
+        }
+
         console.log('[handleGameUpdate] Game is playing, switching to control screen');
         const isOnControl = document.getElementById('admin-game-control')?.classList.contains('active');
+        const isOnInterim = document.getElementById('admin-interim-ranking')?.classList.contains('active');
         console.log('[handleGameUpdate] Is on control screen:', isOnControl);
-        if (!isOnControl) {
+
+        // Só mudar para tela de controle se não estiver no ranking intermediário
+        if (!isOnControl && !isOnInterim) {
             console.log('[handleGameUpdate] Showing admin-game-control');
             showScreen('admin-game-control');
         }
-        updateAdminGameView(data);
+
+        // Atualizar apenas se estiver na tela de controle
+        if (isOnControl) {
+            updateAdminGameView(data);
+        }
     }
 
     // Game finished
@@ -878,6 +895,111 @@ function updateAdminGameView(data) {
     document.getElementById('admin-answered-count').textContent = `${data.playerCount} jogadores conectados`;
 }
 
+// Mostrar ranking intermediário para o admin (quando tempo acaba)
+function showAdminInterimRanking(data) {
+    const ranking = data.ranking || [];
+    const question = data.question;
+    const isLastQuestion = question.questionNumber === question.totalQuestions;
+
+    console.log('[showAdminInterimRanking] Mostrando ranking para pergunta', question.questionNumber);
+
+    // Atualizar número da pergunta
+    document.getElementById('admin-interim-q-num').textContent = question.questionNumber;
+
+    // Mostrar resposta correta
+    const correctLetter = LETTERS[question.correctAnswer];
+    const correctText = question.options[question.correctAnswer];
+    document.getElementById('admin-interim-correct-answer').innerHTML =
+        `<span style="font-size: 1.8rem;">${correctLetter}</span> - ${correctText}`;
+
+    // Mostrar lista de jogadores
+    const listContainer = document.getElementById('admin-interim-ranking-list');
+    listContainer.innerHTML = ranking.map((p, i) => `
+        <div class="ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}">
+            <div class="rank-position">#${i + 1}</div>
+            <div class="rank-name">${p.name}</div>
+            <div class="rank-score">${p.score} pts</div>
+        </div>
+    `).join('');
+
+    // Mostrar mensagem de última pergunta se for o caso
+    const nextBtn = document.getElementById('admin-next-q-btn');
+    const lastMsg = document.getElementById('admin-last-q-msg');
+
+    if (isLastQuestion) {
+        nextBtn.textContent = '🏁 Ver Resultados Finais';
+        nextBtn.style.background = '#28a745';
+        lastMsg.style.display = 'block';
+    } else {
+        nextBtn.textContent = '▶️ Próxima Pergunta';
+        nextBtn.style.background = '';
+        lastMsg.style.display = 'none';
+    }
+
+    // Mostrar a tela
+    showScreen('admin-interim-ranking');
+}
+
+// Admin avança para próxima pergunta manualmente
+async function adminNextQuestionManual() {
+    if (!currentGame?.code) return;
+
+    console.log('[adminNextQuestionManual] Admin clicou para próxima pergunta');
+
+    // Desabilitar o botão temporariamente
+    const btn = document.getElementById('admin-next-q-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Carregando...';
+    }
+
+    try {
+        const response = await fetch('/api/game/next', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ gameCode: currentGame.code })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.error || 'Erro ao avançar');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '▶️ Próxima Pergunta';
+            }
+            return;
+        }
+
+        if (data.status === 'finished') {
+            // Jogo terminou, o polling vai pegar isso
+            console.log('[adminNextQuestionManual] Jogo finalizado');
+            return;
+        }
+
+        // Voltar para tela de controle
+        console.log('[adminNextQuestionManual] Avançando para próxima pergunta');
+        showScreen('admin-game-control');
+
+        // Reabilitar botão após um momento
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '▶️ Próxima Pergunta';
+        }
+
+    } catch (err) {
+        alert('Erro: ' + err.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '▶️ Próxima Pergunta';
+        }
+    }
+}
+
+// Função antiga - mantida para compatibilidade (não é mais usada diretamente)
 async function adminNextQuestion() {
     if (!currentGame?.code) return;
 

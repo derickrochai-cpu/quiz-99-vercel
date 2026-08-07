@@ -2461,6 +2461,34 @@
     </div>
 
     <!-- ============================================ -->
+    <!-- ADMIN INTERIM RANKING (Between Questions) -->
+    <!-- ============================================ -->
+    <div id="admin-interim-ranking" class="screen">
+        <div class="admin-panel">
+            <div class="ranking-title">🏆 Classificação - Pergunta <span id="admin-interim-q-num">1</span></div>
+
+            <!-- Resposta correta -->
+            <div style="background: var(--branco); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 3px solid var(--amarelo-99); text-align: center;">
+                <div style="font-size: 1rem; color: #666; margin-bottom: 10px;">✅ Resposta Correta</div>
+                <div id="admin-interim-correct-answer" style="font-size: 1.5rem; color: #28a745; font-weight: 800;">-</div>
+            </div>
+
+            <!-- Lista de jogadores -->
+            <div class="ranking-list" id="admin-interim-ranking-list" style="margin-bottom: 30px; max-height: 400px; overflow-y: auto;"></div>
+
+            <!-- Botão para próxima pergunta -->
+            <div style="text-align: center;">
+                <button class="btn btn-success" id="admin-next-q-btn" onclick="adminNextQuestionManual()" style="font-size: 1.5rem; padding: 25px 60px;">
+                    ▶️ Próxima Pergunta
+                </button>
+                <p id="admin-last-q-msg" style="color: #28a745; font-size: 1.2rem; font-weight: 700; display: none; margin-top: 20px;">
+                    🏁 Última pergunta! Clique para ver resultados finais
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
     <!-- ADMIN FINAL RANKING -->
     <!-- ============================================ -->
     <div id="admin-final-ranking" class="screen">
@@ -2472,6 +2500,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
 </body>
 </html>
