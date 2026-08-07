@@ -1349,17 +1349,28 @@ function createGoEffect() {
 // ============================================
 
 async function playPodiumAnimation(ranking) {
+    console.log('[playPodiumAnimation] Iniciando animação do pódio com carros 99');
+
     const overlay = document.getElementById('podium-animation');
     const sparklesContainer = document.getElementById('sparkles-container');
     const podiumCarsContainer = document.getElementById('podium-cars-container');
+    const floatingContainer = document.getElementById('podium-floating-cars');
+
+    if (!overlay) {
+        console.error('[playPodiumAnimation] Overlay não encontrado');
+        return;
+    }
 
     overlay.classList.add('active');
 
     // Criar faíscas
-    createSparkles(sparklesContainer);
+    if (sparklesContainer) createSparkles(sparklesContainer);
 
-    // Criar carros celebrando no pódio
-    createPodiumCars(podiumCarsContainer);
+    // Criar estrelas de celebração
+    createPodiumStars();
+
+    // Criar carros 99 celebrando no pódio (agora com imagens reais!)
+    if (podiumCarsContainer) createPodiumCars(podiumCarsContainer);
 
     // Criar confete
     createConfetti();
@@ -1378,9 +1389,11 @@ async function playPodiumAnimation(ranking) {
 
     // Limpar e voltar para a tela normal do pódio
     overlay.classList.remove('active');
-    sparklesContainer.innerHTML = '';
-    podiumCarsContainer.innerHTML = '';
-    document.getElementById('confetti-container').innerHTML = '';
+    if (sparklesContainer) sparklesContainer.innerHTML = '';
+    if (podiumCarsContainer) podiumCarsContainer.innerHTML = '';
+    if (floatingContainer) floatingContainer.innerHTML = '';
+    const confettiContainer = document.getElementById('confetti-container');
+    if (confettiContainer) confettiContainer.innerHTML = '';
 }
 
 // Criar faíscas caindo
@@ -1396,8 +1409,44 @@ function createSparkles(container) {
     }
 }
 
-// Carros celebrando no pódio
+// Criar carros 99 flutuantes na animação do pódio
 function createPodiumCars(container) {
+    // Container para carros flutuantes
+    const floatingContainer = document.getElementById('podium-floating-cars');
+    if (floatingContainer) {
+        floatingContainer.innerHTML = ''; // Limpar anteriores
+
+        // Array com os carros 99 e suas classes
+        const cars99 = [
+            { src: 'car-pop.png', class: 'pop', alt: '99 Pop' },
+            { src: 'car-taxi.png', class: 'taxi', alt: '99 Taxi' },
+            { src: 'car-comfort.png', class: 'comfort', alt: '99 Comfort' },
+            { src: 'car-eyeball.png', class: 'eyeball', alt: '99 Empresas' }
+        ];
+
+        cars99.forEach((car, i) => {
+            const img = document.createElement('img');
+            img.src = car.src;
+            img.alt = car.alt;
+            img.className = `floating-car-99 ${car.class}`;
+            img.style.animationDelay = `${i * 0.5}s`;
+
+            // Adicionar evento de erro caso a imagem não carregue
+            img.onerror = () => {
+                // Fallback para emoji se imagem falhar
+                img.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = `podium-car ${car.class}`;
+                fallback.textContent = ['🚕', '🏍️', '🚗', '🛵'][i];
+                fallback.style.left = (15 + i * 20) + '%';
+                container.appendChild(fallback);
+            };
+
+            floatingContainer.appendChild(img);
+        });
+    }
+
+    // Carros emojis como fallback/efeito adicional
     const vehicles = ['🚕', '🏍️', '🚗', '🛵'];
     vehicles.forEach((v, i) => {
         const car = document.createElement('div');
@@ -1405,6 +1454,7 @@ function createPodiumCars(container) {
         car.textContent = v;
         car.style.left = (15 + i * 25) + '%';
         car.style.animationDelay = (i * 0.3) + 's';
+        car.style.opacity = '0.5'; // Mais transparente já que temos as imagens reais
         container.appendChild(car);
 
         // Adicionar fumaça
@@ -1418,6 +1468,30 @@ function createPodiumCars(container) {
             setTimeout(() => smoke.remove(), 1000);
         }, 500 + i * 200);
     });
+}
+
+// Criar estrelas de celebração
+function createPodiumStars() {
+    const container = document.getElementById('podium-stars');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    // Criar estrelas em posições aleatórias
+    for (let i = 0; i < 15; i++) {
+        const star = document.createElement('div');
+        star.className = 'podium-star';
+        star.style.left = (5 + Math.random() * 90) + '%';
+        star.style.top = (5 + Math.random() * 60) + '%';
+        star.style.animationDelay = (Math.random() * 2) + 's';
+        star.style.animationDuration = (1.5 + Math.random() * 1) + 's';
+        container.appendChild(star);
+
+        // Remover após 8 segundos
+        setTimeout(() => {
+            if (star.parentNode) star.parentNode.removeChild(star);
+        }, 8000);
+    }
 }
 
 // Criar confete

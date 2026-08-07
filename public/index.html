@@ -1357,6 +1357,109 @@
             }
         }
 
+        /* ============================================
+           CARROS 99 NO PÓDIO - ANIMAÇÃO ESPECIAL
+           ============================================ */
+
+        /* Container de carros flutuantes */
+        .podium-floating-cars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .floating-car-99 {
+            position: absolute;
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+            opacity: 0.9;
+        }
+
+        /* Carro Pop animado */
+        .floating-car-99.pop {
+            animation: float_car_pop 15s ease-in-out infinite;
+        }
+
+        @keyframes float_car_pop {
+            0% { transform: translate(-20%, 20%) rotate(-5deg); opacity: 0; }
+            10% { opacity: 0.9; }
+            50% { transform: translate(120%, 15%) rotate(5deg); }
+            90% { opacity: 0.9; }
+            100% { transform: translate(140%, 20%) rotate(-5deg); opacity: 0; }
+        }
+
+        /* Carro Taxi animado */
+        .floating-car-99.taxi {
+            animation: float_car_taxi 12s ease-in-out infinite;
+            animation-delay: 2s;
+            width: 140px;
+        }
+
+        @keyframes float_car_taxi {
+            0% { transform: translate(120%, 40%) rotate(8deg); opacity: 0; }
+            10% { opacity: 0.9; }
+            50% { transform: translate(-30%, 45%) rotate(-8deg); }
+            90% { opacity: 0.9; }
+            100% { transform: translate(-50%, 40%) rotate(8deg); opacity: 0; }
+        }
+
+        /* Carro Comfort animado */
+        .floating-car-99.comfort {
+            animation: float_car_comfort 18s ease-in-out infinite;
+            animation-delay: 4s;
+            width: 130px;
+        }
+
+        @keyframes float_car_comfort {
+            0% { transform: translate(-10%, 60%) rotate(3deg); opacity: 0; }
+            10% { opacity: 0.9; }
+            60% { transform: translate(130%, 55%) rotate(-3deg); }
+            90% { opacity: 0.9; }
+            100% { transform: translate(150%, 60%) rotate(3deg); opacity: 0; }
+        }
+
+        /* Carro Eyeball (99 Empresas) */
+        .floating-car-99.eyeball {
+            animation: float_car_eyeball 20s ease-in-out infinite;
+            animation-delay: 1s;
+            width: 100px;
+        }
+
+        @keyframes float_car_eyeball {
+            0% { transform: translate(130%, 75%) scale(0.8) rotate(-10deg); opacity: 0; }
+            10% { opacity: 0.85; }
+            50% { transform: translate(-20%, 70%) scale(1) rotate(10deg); }
+            90% { opacity: 0.85; }
+            100% { transform: translate(-40%, 75%) scale(0.8) rotate(-10deg); opacity: 0; }
+        }
+
+        /* Estrelas de brilho */
+        .podium-stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .podium-star {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F5C500"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>');
+            background-size: contain;
+            animation: star_twinkle 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px #F5C500);
+        }
+
+        @keyframes star_twinkle {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
+            50% { transform: scale(1.3) rotate(180deg); opacity: 1; }
+        }
+
         /* Carros no pódio */
         .podium-cars {
             position: absolute;
@@ -2041,6 +2144,14 @@
         <div class="spotlight"></div>
         <div class="spotlight"></div>
         <div class="spotlight"></div>
+
+        <!-- Carros 99 flutuantes no background -->
+        <div class="podium-floating-cars" id="podium-floating-cars"></div>
+
+        <!-- Estrelas/brilhos -->
+        <div class="podium-stars" id="podium-stars"></div>
+
+        <!-- Container de carros em pódio -->
         <div class="podium-cars" id="podium-cars-container"></div>
     </div>
 
@@ -2500,6 +2611,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>
