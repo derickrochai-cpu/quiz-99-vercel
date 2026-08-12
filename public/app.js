@@ -179,10 +179,13 @@ function handleGameUpdate(data, role) {
 
     // Game finished
     if (data.status === 'finished' && data.ranking) {
+        console.log('[handleGameStatus] Jogo finalizado! Chamando ranking final para:', role);
         stopPolling();
         if (role === 'player') {
+            console.log('[handleGameStatus] Chamando showPlayerFinalRanking');
             showPlayerFinalRanking(data.ranking);
         } else {
+            console.log('[handleGameStatus] Chamando showAdminFinalRanking');
             showAdminFinalRanking(data.ranking);
         }
     }
@@ -511,7 +514,8 @@ async function getPlayerCoupon() {
         const response = await fetch(`${COUPONS_API}/get?playerEmail=${encodeURIComponent(currentPlayer.email)}&gameCode=${encodeURIComponent(currentGame.code)}`);
 
         const data = await response.json();
-        if (data.success) {
+        console.log('[getPlayerCoupon] Resposta:', data);
+        if (data.success && data.coupon) {
             return data.coupon;
         }
     } catch (err) {
@@ -522,9 +526,18 @@ async function getPlayerCoupon() {
 
 // Atribuir cupom ao jogador no Supabase
 async function assignCouponToPlayer(playerPosition, playerScore) {
-    if (!currentPlayer || !currentGame) return null;
+    if (!currentPlayer || !currentGame) {
+        console.log('[assignCouponToPlayer] currentPlayer ou currentGame não definidos');
+        return null;
+    }
 
     try {
+        console.log('[assignCouponToPlayer] Tentando atribuir cupom...', {
+            email: currentPlayer.email,
+            game: currentGame.code,
+            position: playerPosition
+        });
+
         const response = await fetch(`${COUPONS_API}/assign`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -538,8 +551,15 @@ async function assignCouponToPlayer(playerPosition, playerScore) {
         });
 
         const data = await response.json();
-        if (data.success) {
+        console.log('[assignCouponToPlayer] Resposta:', data);
+
+        if (data.success && data.coupon) {
             return data.coupon;
+        }
+        // Se não tem cupom disponível, retorna null mas não é erro
+        if (data.error === 'No coupons available') {
+            console.log('[assignCouponToPlayer] Não há cupons disponíveis');
+            return null;
         }
     } catch (err) {
         console.log('Erro ao atribuir cupom:', err);
@@ -548,10 +568,13 @@ async function assignCouponToPlayer(playerPosition, playerScore) {
 }
 
 async function showPlayerFinalRanking(ranking) {
+    console.log('[showPlayerFinalRanking] Iniciando com ranking:', ranking);
+
     // PRIMEIRO: Mostrar animação elaborada do pódio
     await playPodiumAnimation(ranking);
 
     // DEPOIS: Mostrar tela normal do pódio com cupom
+    console.log('[showPlayerFinalRanking] Mostrando tela do pódio');
     showScreen('podium-screen');
 
     const myRank = ranking.findIndex(p => p.id === currentPlayer?.id) + 1;
