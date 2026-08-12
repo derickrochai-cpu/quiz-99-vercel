@@ -7,6 +7,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- DiDi Sans Font -->
+    <style>
+        @font-face {
+            font-family: 'DiDi Sans';
+            src: url('https://vamosde.99paraempresas.com/hubfs/fonts/DiDiSans-Regular.woff2') format('woff2'),
+                 url('https://vamosde.99paraempresas.com/hubfs/fonts/DiDiSans-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'DiDi Sans';
+            src: url('https://vamosde.99paraempresas.com/hubfs/fonts/DiDiSans-Bold.woff2') format('woff2'),
+                 url('https://vamosde.99paraempresas.com/hubfs/fonts/DiDiSans-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'DiDi Sans';
+            src: url('https://vamosde.99paraempresas.com/hubfs/fonts/DiDiSans-ExtraBold.woff2') format('woff2'),
+                 url('https://vamosde.99paraempresas.com/hubfs/fonts/DiDiSans-ExtraBold.woff') format('woff');
+            font-weight: 800;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
     <style>
         /* ============================================
            PALETA DE CORES - QUIZ 99 B2B
@@ -26,7 +53,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'DiDi Sans', 'Montserrat', sans-serif;
             background: linear-gradient(135deg, var(--off-white) 0%, #e8e8e8 100%);
             min-height: 100vh;
             color: var(--preto);
@@ -1683,7 +1710,7 @@
             justify-content: center;
             align-items: flex-end;
             gap: 30px;
-            margin-top: 50px;
+            margin-top: 20px;
             height: 350px;
             position: relative;
             z-index: 10;
@@ -1851,8 +1878,10 @@
         /* Mensagem de vitória */
         .victory-message {
             text-align: center;
-            margin-top: 30px;
+            margin-bottom: 40px;
             animation: victory_pulse 2s ease-in-out infinite;
+            position: relative;
+            z-index: 20;
         }
 
         .victory-message h2 {
@@ -1862,7 +1891,10 @@
             letter-spacing: 5px;
             text-shadow:
                 0 0 20px rgba(245,197,0,0.8),
-                0 0 40px rgba(245,197,0,0.5);
+                0 0 40px rgba(245,197,0,0.5),
+                2px 2px 4px rgba(0,0,0,0.8);
+            font-family: 'DiDi Sans', 'Montserrat', sans-serif;
+            font-weight: 800;
         }
 
         @keyframes victory_pulse {

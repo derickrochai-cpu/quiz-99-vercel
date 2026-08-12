@@ -1637,7 +1637,7 @@ function renderAnimatedPodium(ranking) {
     // Mensagem de vitória
     const victoryMsg = document.createElement('div');
     victoryMsg.className = 'victory-message';
-    victoryMsg.innerHTML = '<h2>🏆 RACE FINISHED! 🏆</h2>';
+    victoryMsg.innerHTML = '<h2>🏆 CORRIDA FINALIZADA! 🏆</h2>';
 
     // Container central
     const content = document.createElement('div');
