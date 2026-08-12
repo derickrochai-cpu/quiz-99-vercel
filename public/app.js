@@ -564,11 +564,12 @@ async function showPlayerFinalRanking(ranking) {
     podium.innerHTML = order.map(pos => {
         const p = top3[pos];
         if (!p) return '';
-        const cls = pos === 1 ? 'first' : pos === 0 ? 'second' : 'third';
-        const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
+        // pos é o índice no array top3: 0=1º lugar, 1=2º lugar, 2=3º lugar
+        const cls = pos === 0 ? 'first' : pos === 1 ? 'second' : 'third';
+        const medal = pos === 0 ? '🥇' : pos === 1 ? '🥈' : '🥉';
         return `
             <div class="podium-place">
-                <div class="podium-avatar ${pos === 1 ? 'first' : ''}">${medal}</div>
+                <div class="podium-avatar ${pos === 0 ? 'first' : ''}">${medal}</div>
                 <div class="podium-block ${cls}">
                     <div class="podium-name">${p.name}</div>
                     <div class="podium-score">${p.score} pts</div>
@@ -1065,11 +1066,12 @@ function showAdminFinalRanking(ranking) {
     podium.innerHTML = order.map(pos => {
         const p = top3[pos];
         if (!p) return '';
-        const cls = pos === 1 ? 'first' : pos === 0 ? 'second' : 'third';
-        const medal = pos === 1 ? '🥇' : pos === 0 ? '🥈' : '🥉';
+        // pos é o índice no array top3: 0=1º lugar, 1=2º lugar, 2=3º lugar
+        const cls = pos === 0 ? 'first' : pos === 1 ? 'second' : 'third';
+        const medal = pos === 0 ? '🥇' : pos === 1 ? '🥈' : '🥉';
         return `
             <div class="podium-place">
-                <div class="podium-avatar ${pos === 1 ? 'first' : ''}">${medal}</div>
+                <div class="podium-avatar ${pos === 0 ? 'first' : ''}">${medal}</div>
                 <div class="podium-block ${cls}">
                     <div class="podium-name">${p.name}</div>
                     <div class="podium-score">${p.score} pts</div>
@@ -1576,25 +1578,38 @@ function renderAnimatedPodium(ranking) {
     const podiumDiv = document.createElement('div');
     podiumDiv.className = 'podium-enhanced';
 
-    const medals = ['🥈', '🥇', '🥉'];
-    const classes = ['second', 'first', 'third'];
+    // Função para obter a medalha correta baseada na posição real (1, 2, 3)
+    const getMedal = (position) => {
+        if (position === 0) return '🥇'; // 1º lugar - Ouro
+        if (position === 1) return '🥈'; // 2º lugar - Prata
+        return '🥉'; // 3º lugar - Bronze
+    };
+
+    // Função para obter a classe CSS correta baseada na posição real
+    const getClass = (position) => {
+        if (position === 0) return 'first';  // 1º lugar
+        if (position === 1) return 'second'; // 2º lugar
+        return 'third'; // 3º lugar
+    };
+
     const top3 = ranking.slice(0, 3);
 
-    // Ordem: 2º, 1º, 3º
+    // Ordem de renderização visual: 2º, 1º, 3º
     const order = [1, 0, 2];
 
-    order.forEach((pos, idx) => {
+    order.forEach((pos) => {
         const player = top3[pos];
         if (!player) return;
 
         const place = document.createElement('div');
         place.className = 'podium-place-enhanced';
 
+        // Usar a posição real (pos) para determinar medalha e classe
         place.innerHTML = `
-            <div class="podium-avatar-enhanced ${classes[idx]}">
-                ${medals[idx]}
+            <div class="podium-avatar-enhanced ${getClass(pos)}">
+                ${getMedal(pos)}
             </div>
-            <div class="podium-block-enhanced ${classes[idx]}">
+            <div class="podium-block-enhanced ${getClass(pos)}">
                 <div class="podium-name-enhanced">${escapeHtml(player.name)}</div>
                 <div class="podium-score-enhanced">${player.score} pts</div>
                 <div class="podium-rank-number">${pos + 1}</div>
