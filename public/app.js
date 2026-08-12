@@ -583,18 +583,33 @@ async function showPlayerFinalRanking(ranking) {
         coupon = await assignCouponToPlayer(myRank, myScore);
     }
 
-    // Mostrar cupom
-    if (coupon) {
-        document.getElementById('coupon-discount').textContent = coupon.discount;
-        document.getElementById('coupon-code').textContent = coupon.code;
-        document.getElementById('coupon-section').style.display = 'block';
+    // Mostrar cupom ou mensagem de parabéns
+    const couponSection = document.getElementById('coupon-section');
+    const couponTitle = document.getElementById('coupon-title');
+    const couponDiscount = document.getElementById('coupon-discount');
+    const couponCode = document.getElementById('coupon-code');
+    const couponValidity = document.getElementById('coupon-validity');
+
+    if (coupon && coupon.code) {
+        // Tem cupom - mostrar detalhes
+        couponTitle.textContent = '🎉 Você ganhou um cupom!';
+        couponDiscount.textContent = coupon.discount || 'Desconto especial';
+        couponDiscount.style.display = 'block';
+        couponCode.textContent = coupon.code;
+        couponCode.style.display = 'block';
+        couponValidity.textContent = 'Válido por 30 dias • Use no app 99';
+        couponSection.style.display = 'block';
     } else {
-        document.getElementById('coupon-section').innerHTML = `
-            <div class="coupon-title">🎉 Parabéns!</div>
-            <p style="color:#000; font-size:1.2rem;">Você terminou na posição #${myRank}!</p>
-            <p style="color:#666;">Infelizmente não há cupons disponíveis no momento.</p>
-        `;
-        document.getElementById('coupon-section').style.display = 'block';
+        // Não tem cupom - mostrar mensagem de parabéns
+        couponTitle.textContent = '🎉 Parabéns!';
+        couponDiscount.textContent = `Você terminou na posição #${myRank}!`;
+        couponDiscount.style.display = 'block';
+        couponDiscount.style.fontSize = '1.3rem';
+        couponDiscount.style.fontWeight = '600';
+        couponDiscount.style.color = '#000';
+        couponCode.style.display = 'none';
+        couponValidity.textContent = 'Obrigado por participar do Quiz 99 para Empresas!';
+        couponSection.style.display = 'block';
     }
 }
 
