@@ -810,7 +810,14 @@ function updateAdminWaitingPlayers(players) {
 
     // Atualizar grade de largada do admin
     if (gridContainer) {
-        const vehicles = ['🏎️', '🏍️', '🚕', '🚗', '🛵', '🚙', '🏎️', '🏍️'];
+        // Imagens oficiais 99
+        const iconImages = [
+            'https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-02.png',
+            'https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-07.png',
+            'https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-03.png',
+            'https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-06.png',
+            'https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-04.png'
+        ];
         gridContainer.innerHTML = players.slice(0, 8).map((p, i) => `
             <div class="admin-grid-row" style="
                 display: flex;
@@ -823,9 +830,9 @@ function updateAdminWaitingPlayers(players) {
                 animation: slide_in 0.5s ease-out ${i * 0.1}s both;
             ">
                 <span style="font-weight: 900; color: ${i === 0 ? '#F5C500' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : '#666'}; font-size: 1.3rem;">P${i + 1}</span>
-                <span style="font-size: 2rem;">${vehicles[i]}</span>
+                <img src="${iconImages[i % iconImages.length]}" alt="" style="height: 32px; width: auto;">
                 <span style="color: #fff; flex: 1; font-weight: 600;">${p.name}</span>
-                <span style="color: ${i === 0 ? '#F5C500' : '#666'}; font-size: 0.9rem;">${i === 0 ? '🏆 POLE' : ''}</span>
+                <span style="color: ${i === 0 ? '#F5C500' : '#666'}; font-size: 0.9rem;">${i === 0 ? 'POLE' : ''}</span>
             </div>
         `).join('');
 
@@ -843,8 +850,8 @@ function updateAdminWaitingPlayers(players) {
                     opacity: 0.5;
                 ">
                     <span style="font-weight: 900; color: #444; font-size: 1.3rem;">P${i + 1}</span>
-                    <span style="font-size: 2rem; filter: grayscale(1);">🏎️</span>
-                    <span style="color: #666; flex: 1; font-style: italic;">Empty slot...</span>
+                    <img src="${iconImages[i % iconImages.length]}" alt="" style="height: 32px; width: auto; filter: grayscale(1); opacity: 0.5;">
+                    <span style="color: #666; flex: 1; font-style: italic;">Vaga vazia...</span>
                 </div>
             `;
         }
