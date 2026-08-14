@@ -1667,7 +1667,7 @@ function renderAnimatedPodium(ranking) {
     // Mensagem de vitória
     const victoryMsg = document.createElement('div');
     victoryMsg.className = 'victory-message';
-    victoryMsg.innerHTML = '<h2>🏆 CORRIDA FINALIZADA! 🏆</h2>';
+    victoryMsg.innerHTML = '<h2><img src="https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-05.png" alt="" style="height: 48px; width: auto; vertical-align: middle; margin: 0 10px;"> CORRIDA FINALIZADA! <img src="https://vamosde.99paraempresas.com/hubfs/%C3%8Dcones-05.png" alt="" style="height: 48px; width: auto; vertical-align: middle; margin: 0 10px;"></h2>';
 
     // Container central
     const content = document.createElement('div');
